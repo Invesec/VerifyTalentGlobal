@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <p><a href="{{ url_for('admin_clients.client_list') }}">Back to companies</a></p>
+    <h1>{{ capp.company_name }}{% if capp.business_email.endswith(demo_domain) %} <span class="chip chip-muted">DEMO</span>{% endif %}</h1>
+    <p class="meta"><strong>{{ capp.application_id }}</strong>{% if client %} &middot; <strong>{{ client.client_id }}</strong>{% endif %}</p>
+    {% include "admin/_nav.html" %}
+    <p>
+      <span class="chip">{{ labels.get(capp.status, capp.status) }}</span>
+      {% if agreement %}<span class="chip chip-muted">Agreement: {{ agreement_labels.get(agreement.status, agreement.status) }}</span>{% endif %}
+      {% if client %}<span class="chip chip-muted">Membership: {{ client.membership_status.title() }}</span>{% endif %}
+      <span class="chip {{ '' if email_verified else 'chip-danger' }}">Email {{ 'verified' if email_verified else 'not verified' }}</span>
+    </p>
+    {% if verify_on and not email_verified %}
+    <form method="post" action="{{ url_for('admin.verify_user_email', user_id=capp.user_id) }}" class="stack">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="back" value="{{ url_for('admin_clients.client_detail', pk=capp.id) }}">
+      <button class="btn btn-navy" type="submit" data-confirm="Mark this email as verified without a code?">Mark email as verified</button>
+    </form>{% endif %}
+
+    <div class="two-col">
+      <div>
+        <h2>Review</h2>
+        <form method="post" action="{{ url_for('admin_clients.change_status', pk=capp.id) }}" class="stack">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <div class="field"><label for="status">Set status</label>
+            <select id="status" name="status">{% for s in statuses %}<option value="{{ s }}" {% if capp.status == s %}selected{% endif %}>{{ labels[s] }}</option>{% endfor %}</select></div>
+          <button class="btn btn-navy" type="submit">Update status</button>
+        </form>
+        {% if not client and capp.status in ('NEW', 'UNDER_REVIEW', 'REJECTED') %}
+        <form method="post" action="{{ url_for('admin_clients.approve', pk=capp.id) }}" class="stack">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <div class="field"><label for="message">Message to include in the email <span class="opt">(optional)</span></label>
+            <textarea id="message" name="message" rows="2" maxlength="1000"></textarea></div>
+          <button class="btn btn-gold" type="submit" data-confirm="Approve this company and email them?">Approve company</button>
+        </form>
+        {% endif %}
+
+        <h2>Client agreement</h2>
+        <p class="small">Agreements are legal documents. Have a qualified lawyer review your agreement text before using it commercially. Nothing is sent automatically.</p>
+        {% if can_prepare %}
+        <form method="post" class="stack">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <div class="field"><label for="agreement_type">Agreement type</label>
+            <select id="agreement_type" name="agreement_type">{% for t in agreement_types %}<option {% if agreement and agreement.agreement_type == t %}selected{% endif %}>{{ t }}</option>{% endfor %}</select></div>
+          <div class="field"><label for="document_reference">Document link or reference</label>
+            <input id="document_reference" name="document_reference" maxlength="300" value="{{ agreement.document_reference if agreement and agreement.document_reference else '' }}"></div>
+          <div class="field"><label for="expires_at">Expiry date <span class="opt">(YYYY-MM-DD, optional)</span></label>
+            <input id="expires_at" name="expires_at" inputmode="numeric" maxlength="10" value="{{ agreement.expires_at.isoformat() if agreement and agreement.expires_at else '' }}"></div>
+          <div class="field"><label for="notes">Notes <span class="opt">(internal, optional)</span></label>
+            <textarea id="notes" name="notes" rows="2" maxlength="1000">{{ agreement.notes if agreement and agreement.notes else '' }}</textarea></div>
+          <div class="actions">
+            <button class="btn btn-navy" type="submit" formaction="{{ url_for('admin_clients.save_agreement', pk=capp.id, action='pending') }}">Save as pending</button>
+            <button class="btn btn-gold" type="submit" formaction="{{ url_for('admin_clients.save_agreement', pk=capp.id, action='send') }}" data-confirm="Send this agreement to the client now?">Send to client</button>
+          </div>
+        </form>
+        {% elif not agreement %}<p>Approve the company first.</p>{% endif %}
+
+        {% if agreement %}
+        <dl class="profile">
+          <div><dt>Agreement ID</dt><dd>{{ agreement.agreement_id }}</dd></div>
+          <div><dt>Type</dt><dd>{{ agreement.agreement_type }}</dd></div>
+          {% if agreement.document_reference %}<div><dt>Document</dt><dd>{{ agreement.document_reference }}</dd></div>{% endif %}
+          {% if agreement.sent_at %}<div><dt>Sent</dt><dd>{{ agreement.sent_at|dt(True) }}</dd></div>{% endif %}
+          {% if agreement.viewed_at %}<div><dt>Viewed</dt><dd>{{ agreement.viewed_at|dt(True) }}</dd></div>{% endif %}
+          {% if agreement.accepted_at %}<div><dt>Accepted</dt><dd>{{ agreement.accepted_at|dt(True) }} by {{ agreement.accepted_by_name }}</dd></div>{% endif %}
+          {% if agreement.expires_at %}<div><dt>Expires</dt><dd>{{ agreement.expires_at|dt }}</dd></div>{% endif %}
+        </dl>
+        <form method="post" action="{{ url_for('admin_clients.agreement_status', pk=capp.id) }}" class="stack">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <div class="field"><label for="agreement_status">Change agreement status</label>
+            <select id="agreement_status" name="agreement_status">{% for s in agreement_statuses %}<option value="{{ s }}" {% if agreement.status == s %}selected{% endif %}>{{ agreement_labels[s] }}</option>{% endfor %}</select></div>
+          <p class="small">Choose Accepted only to record a signed copy received outside the portal.</p>
+          <button class="btn btn-navy" type="submit" data-confirm="Change the agreement status?">Change status</button>
+        </form>
+        {% endif %}
+
+        {% if can_activate %}
+        <h2>Activation</h2>
+        <p>The company is approved and its agreement is accepted. Activating issues the official Client ID.</p>
+        <form method="post" action="{{ url_for('admin_clients.activate', pk=capp.id) }}" class="stack">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="btn btn-gold" type="submit" data-confirm="Activate this client and issue the Client ID?">Activate client</button>
+        </form>
+        {% endif %}
+
+        <h2>Admin notes</h2>
+        <form method="post" action="{{ url_for('admin_clients.save_notes', pk=capp.id) }}" class="stack">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <textarea name="admin_notes" rows="4" maxlength="4000" aria-label="Admin notes">{{ capp.admin_notes or '' }}</textarea>
+          <button class="btn btn-navy" type="submit">Save notes</button>
+        </form>
+      </div>
+
+      <div>
+        <h2>Company</h2>
+        <dl class="profile">
+          <div><dt>Industry</dt><dd>{{ capp.industry }}</dd></div>
+          <div><dt>Country</dt><dd>{{ capp.country }}</dd></div>
+          <div><dt>Size</dt><dd>{{ capp.company_size }} employees</dd></div>
+          {% if capp.website %}<div><dt>Website</dt><dd><a href="{{ capp.website }}" rel="noopener nofollow ugc">{{ capp.website }}</a></dd></div>{% endif %}
+          {% if capp.linkedin_url %}<div><dt>LinkedIn</dt><dd><a href="{{ capp.linkedin_url }}" rel="noopener nofollow ugc">{{ capp.linkedin_url }}</a></dd></div>{% endif %}
+          <div><dt>Contact</dt><dd>{{ capp.contact_name }}, {{ capp.job_title }}</dd></div>
+          <div><dt>Email</dt><dd>{{ capp.business_email }}</dd></div>
+          {% if capp.phone %}<div><dt>Phone</dt><dd>{{ capp.phone }}</dd></div>{% endif %}
+          {% if capp.description %}<div><dt>Description</dt><dd>{{ capp.description }}</dd></div>{% endif %}
+          <div><dt>Recruitment needs</dt><dd>{{ capp.recruitment_needs }}</dd></div>
+        </dl>
+        <h2>Activity</h2>
+        <ul class="log">{% for l in logs %}<li><strong>{{ l.action }}</strong> by {{ l.actor_label or 'system' }}<br><span class="small">{{ l.created_at|dt(True) }}</span></li>{% else %}<li>No activity yet.</li>{% endfor %}</ul>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

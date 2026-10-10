@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section"><div class="wrap narrow prose">
+  <h1>For companies</h1>
+  <p>Hire remote professionals who have been through our screening and onboarding process.</p>
+  <h2>What you get</h2>
+  <ul>
+    <li>Candidates presented by our team after review, not an unfiltered list</li>
+    <li>A dashboard to follow your job requests, presented candidates, and interviews</li>
+    <li>A clear agreement and a Client ID once your account is active</li>
+    <li>Candidate privacy protected: contact details stay with VerifyTalent Global</li>
+  </ul>
+  <h2>Good to know</h2>
+  <p>Every company is reviewed before activation. Registering does not create an agreement, and we do not guarantee that a search will end in a hire.</p>
+  <p><a class="btn btn-navy" href="{{ url_for('auth.register_company') }}">Register your company</a> <a href="{{ url_for('main.page_how_it_works') }}">See the full process</a></p>
+</div></section>
+{% endblock %}

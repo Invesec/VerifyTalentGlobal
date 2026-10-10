@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block body_class %}home{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-text">
+      <h1 class="tagline">
+        <span class="t-find">Find.</span>
+        <span class="t-verify">Verify.</span>
+        <span class="t-match">Match.</span>
+      </h1>
+      <p class="lede">Connect with qualified professionals and global opportunities through a trusted talent network.</p>
+      <div class="actions">
+        <a class="btn btn-navy" href="{{ url_for('auth.register_company') }}">Hire Talent</a>
+        <a class="btn btn-gold" href="{{ url_for('auth.register') }}">Join Talent Network</a>
+      </div>
+    </div>
+    <img class="hero-mark" src="{{ url_for('static', filename='images/logo-mark.png') }}" alt="VerifyTalent Global logo: a globe above the letters V and T" width="600" height="483">
+  </div>
+</section>
+
+<section id="how-it-works" class="section">
+  <div class="wrap">
+    <h2>How it works</h2>
+    <p class="section-intro">Two paths, one verified network. Every step is reviewed by a person on our team.</p>
+    <div class="two-col">
+      <div>
+        <h3>For professionals</h3>
+        <ol class="steps">
+          {% for name, text in talent_steps %}<li><strong>{{ name }}</strong><span>{{ text }}</span></li>{% endfor %}
+        </ol>
+      </div>
+      <div>
+        <h3>For companies</h3>
+        <ol class="steps steps-gold">
+          {% for name, text in client_steps %}<li><strong>{{ name }}</strong><span>{{ text }}</span></li>{% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="for-professionals" class="section tint">
+  <div class="wrap two-col">
+    <div>
+      <h2>For professionals</h2>
+      <p>Join a network built around verified skills. Registration is free, and our team reviews every application.</p>
+      <p>Approved professionals receive an official VerifyTalent Global Talent ID card and become eligible for relevant job matching.</p>
+    </div>
+    <div class="notice" role="note">
+      <h3>Talent Verification &amp; Onboarding Fee: $60</h3>
+      <p>Covers application processing, screening, verification, profile creation, your VerifyTalent Global ID card, onboarding, and eligibility for relevant job matching.</p>
+      <p class="strong">Payment does not guarantee employment, an interview, a job offer, or placement.</p>
+    </div>
+  </div>
+</section>
+
+<section id="for-companies" class="section">
+  <div class="wrap two-col">
+    <div>
+      <h2>For companies</h2>
+      <p>Hire remote professionals who have been screened and verified. Tell us what you need and our team presents matched candidates for your review.</p>
+      <p><a class="btn btn-navy" href="{{ url_for('auth.register_company') }}">Register your company</a></p>
+    </div>
+    <div>
+      <p>Every company is reviewed before activation. Matching scores are internal guides, reviewed by our recruiters before anything reaches you.</p>
+    </div>
+  </div>
+</section>
+
+<section id="why" class="section">
+  <div class="wrap">
+    <h2>Why VerifyTalent Global</h2>
+    <dl class="cats">
+      <div class="cat"><dt>People review every step</dt><dd>Applications, companies, and matches are reviewed by our team, not left to an algorithm alone.</dd></div>
+      <div class="cat"><dt>Clear process for both sides</dt><dd>Professionals and companies each follow a defined path, with statuses you can see in your dashboard.</dd></div>
+      <div class="cat"><dt>Privacy by design</dt><dd>Clients see presented candidates only. Contact details stay with VerifyTalent Global.</dd></div>
+      <div class="cat"><dt>Honest about outcomes</dt><dd>We never promise jobs, interviews, or hires. Matching scores are internal guides.</dd></div>
+    </dl>
+    <p><a href="{{ url_for('main.page_how_it_works') }}">Read the full process</a></p>
+  </div>
+</section>
+
+<section id="categories" class="section tint">
+  <div class="wrap">
+    <h2>Talent categories</h2>
+    <dl class="cats">
+      {% for name, text in categories %}<div class="cat"><dt>{{ name }}</dt><dd>{{ text }}</dd></div>{% endfor %}
+    </dl>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap narrow">
+    <h2>Frequently asked questions</h2>
+    {% for q, a in faqs %}<details class="faq"><summary>{{ q }}</summary><p>{{ a }}</p></details>{% endfor %}
+  </div>
+</section>
+
+<section class="cta">
+  <div class="wrap cta-inner">
+    <h2>Ready to find, verify, and match?</h2>
+    <div class="actions">
+      <a class="btn btn-white" href="{{ url_for('auth.register_company') }}">Hire Talent</a>
+      <a class="btn btn-gold" href="{{ url_for('auth.register') }}">Join Talent Network</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

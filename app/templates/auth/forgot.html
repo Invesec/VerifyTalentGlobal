@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section form-page">
+  <div class="wrap narrow">
+    <h1>Forgot your password?</h1>
+    {% if sent %}
+      <p class="flash flash-success" role="status">If an account exists for that email, we have sent a link to reset the password. It works for one hour.</p>
+      <p><a href="{{ url_for('auth.login') }}">Back to log in</a></p>
+    {% else %}
+      <p class="section-intro">Enter the email you registered with and we will send you a reset link.</p>
+      <form method="post" action="{{ url_for('auth.forgot_password') }}" class="login-form">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <div class="field"><label for="email">Email address</label>
+          <input id="email" name="email" type="email" required autocomplete="email" maxlength="254"></div>
+        <button class="btn btn-navy" type="submit">Send reset link</button>
+      </form>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

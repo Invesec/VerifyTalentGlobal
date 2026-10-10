@@ -1,0 +1,9 @@
+{% if steps %}
+<ol class="stepper" aria-label="Your progress">
+  {% for label in steps %}
+  <li class="{{ 'done' if loop.index0 < current else ('current' if loop.index0 == current else '') }}" {% if loop.index0 == current %}aria-current="step"{% endif %}>
+    <span class="dot" aria-hidden="true">{{ '&#10003;'|safe if loop.index0 < current else loop.index }}</span><span class="lbl">{{ label }}</span>
+  </li>
+  {% endfor %}
+</ol>
+{% endif %}

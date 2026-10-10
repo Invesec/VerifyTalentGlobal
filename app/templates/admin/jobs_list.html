@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <h1>Job requests</h1>
+    {% include "admin/_nav.html" %}
+    <form method="get" class="filters" data-live-filter="#live-results">
+      <input type="search" name="q" value="{{ q }}" placeholder="Search title, ID, company" aria-label="Search">
+      <select name="status" aria-label="Status"><option value="">All statuses</option>
+        {% for key, label in labels.items() if key != 'DRAFT' %}<option value="{{ key }}" {% if status == key %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+      <button class="btn btn-navy" type="submit">Filter</button>
+    </form>
+    <div id="live-results" aria-live="polite">
+    {% if rows %}
+    <div class="table-scroll"><table>
+      <thead><tr><th>Job</th><th>Title</th><th>Company</th><th>Profession</th><th>Workers</th><th>Status</th></tr></thead>
+      <tbody>{% for j, c in rows %}
+        <tr><td><a href="{{ url_for('admin_jobs.job_detail', pk=j.id) }}">{{ j.job_id }}</a></td><td>{{ j.title }}</td><td>{{ c.company_name }}</td>
+        <td>{{ j.profession }}</td><td>{{ j.workers_needed }}</td><td>{{ labels.get(j.status, j.status) }}</td></tr>
+      {% endfor %}</tbody>
+    </table></div>
+    <p class="pager">
+      {% if page > 1 %}<a href="{{ url_for('admin_jobs.job_list', q=q, status=status, page=page-1) }}">Previous</a>{% endif %}
+      {% if has_next %}<a href="{{ url_for('admin_jobs.job_list', q=q, status=status, page=page+1) }}">Next</a>{% endif %}
+    </p>
+    {% else %}<p>No job requests yet.</p>{% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

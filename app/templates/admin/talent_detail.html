@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <p><a href="{{ url_for('admin.talent_list') }}">Back to talent</a></p>
+    <h1>{{ user.full_name }}{% if user.email.endswith(demo_domain) %} <span class="chip chip-muted">DEMO</span>{% endif %}</h1>
+    <p class="meta"><strong>{{ row.application_id }}</strong>{% if row.talent_id %} &middot; <strong>{{ row.talent_id }}</strong>{% endif %}</p>
+    {% include "admin/_nav.html" %}
+    <p>
+      <span class="chip">{{ labels.get(row.status, row.status) }}</span>
+      <span class="chip chip-muted">Verification: {{ row.verification_status.title() }}</span>
+      <span class="chip chip-muted">Payment: {{ payment_labels.get(row.payment_status, row.payment_status) }}</span>
+      {% if not user.is_active %}<span class="chip chip-danger">Suspended</span>{% endif %}
+      <span class="chip {{ '' if email_verified else 'chip-danger' }}">Email {{ 'verified' if email_verified else 'not verified' }}</span>
+    </p>
+    {% if verify_on and not email_verified %}
+    <form method="post" action="{{ url_for('admin.verify_user_email', user_id=user.id) }}" class="stack">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="back" value="{{ url_for('admin.talent_detail', app_pk=row.id) }}">
+      <button class="btn btn-navy" type="submit" data-confirm="Mark this email as verified without a code?">Mark email as verified</button>
+    </form>{% endif %}
+
+    <div class="two-col">
+      <div>
+        <h2>Review</h2>
+        <form method="post" action="{{ url_for('admin.change_status', app_pk=row.id) }}" class="stack">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <div class="field"><label for="status">Set status</label>
+            <select id="status" name="status">{% for s in statuses %}<option value="{{ s }}" {% if row.status == s %}selected{% endif %}>{{ labels[s] }}</option>{% endfor %}</select></div>
+          <div class="field"><label for="message">Message to include in the email <span class="opt">(optional)</span></label>
+            <textarea id="message" name="message" rows="2" maxlength="1000"></textarea></div>
+          <label class="check-label"><input type="checkbox" name="send_email" value="yes" checked>
+            <span>Email the talent (sent for Screening, Assessment, and Rejected)</span></label>
+          <button class="btn btn-navy" type="submit">Update status</button>
+        </form>
+
+        {% if not row.talent_id and not onboarding %}
+        <form method="post" action="{{ url_for('admin.approve', app_pk=row.id) }}" class="stack">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="btn btn-gold" type="submit" data-confirm="Approve this application and email the talent?">Approve application</button>
+        </form>
+        {% endif %}
+
+        <h2>Admin notes</h2>
+        <form method="post" action="{{ url_for('admin.save_notes', app_pk=row.id) }}" class="stack">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <textarea name="admin_notes" rows="4" maxlength="4000" aria-label="Admin notes">{{ row.admin_notes or '' }}</textarea>
+          <button class="btn btn-navy" type="submit">Save notes</button>
+        </form>
+
+        <h2>Account</h2>
+        {% if user.is_active %}
+        <form method="post" action="{{ url_for('admin.suspend', app_pk=row.id) }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="btn btn-danger" type="submit" data-confirm="Suspend this talent? They will not be able to log in.">Suspend talent</button></form>
+        {% else %}
+        <form method="post" action="{{ url_for('admin.reinstate', app_pk=row.id) }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="btn btn-navy" type="submit">Reinstate talent</button></form>
+        {% endif %}
+      </div>
+
+      <div>
+        <h2>$60 onboarding payment</h2>
+        {% if row.payment_status == 'VERIFIED' %}
+          <dl class="profile">
+            <div><dt>Verified</dt><dd>{{ row.payment_verified_at|dt(True) }}</dd></div>
+            <div><dt>Amount</dt><dd>{{ row.payment_amount }} {{ row.payment_currency }}</dd></div>
+            <div><dt>Reference</dt><dd>{{ row.payment_reference }}</dd></div>
+            <div><dt>Method</dt><dd>{{ row.payment_method }}</dd></div>
+            <div><dt>Talent ID</dt><dd>{{ row.talent_id }}</dd></div>
+          </dl>
+        {% elif onboarding %}
+          <p class="small">The talent pays the official administrator directly. Confirm only after you have checked the payment yourself. Nothing is verified automatically.</p>
+          <form method="post" class="stack">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <div class="field"><label for="reference">Payment reference</label><input id="reference" name="reference" maxlength="120" value="{{ row.payment_reference or '' }}"></div>
+            <div class="field"><label for="amount">Amount</label><input id="amount" name="amount" inputmode="decimal" value="{{ row.payment_amount or '60.00' }}"></div>
+            <div class="field"><label for="currency">Currency</label>
+              <select id="currency" name="currency">{% for c in currencies %}<option {% if (row.payment_currency or 'USD') == c %}selected{% endif %}>{{ c }}</option>{% endfor %}</select></div>
+            <div class="field"><label for="method">Payment method</label>
+              <select id="method" name="method"><option value="">Choose one</option>{% for m in methods %}<option {% if row.payment_method == m %}selected{% endif %}>{{ m }}</option>{% endfor %}</select></div>
+            <div class="field"><label for="payment_note">Note <span class="opt">(optional)</span></label><textarea id="payment_note" name="payment_note" rows="2" maxlength="500"></textarea></div>
+            <div class="actions">
+              <button class="btn btn-navy" type="submit" formaction="{{ url_for('admin.payment_action', app_pk=row.id, action='submitted') }}">Mark as submitted</button>
+              <button class="btn btn-gold" type="submit" formaction="{{ url_for('admin.payment_action', app_pk=row.id, action='confirm') }}" data-confirm="Confirm this payment? This issues the Talent ID and ID card.">Confirm payment</button>
+              <button class="btn btn-danger" type="submit" formaction="{{ url_for('admin.payment_action', app_pk=row.id, action='reject') }}" data-confirm="Reject this payment?">Reject payment</button>
+            </div>
+          </form>
+          <form method="post" action="{{ url_for('admin.send_instructions', app_pk=row.id) }}" class="stack">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <button class="btn btn-navy" type="submit">Email payment instructions</button>
+          </form>
+        {% else %}
+          <p>Payment opens after the application is approved.</p>
+        {% endif %}
+
+        <h2>Profile</h2>
+        <dl class="profile">
+          <div><dt>Email</dt><dd>{{ user.email }}</dd></div>
+          {% if row.phone %}<div><dt>Phone</dt><dd>{{ row.phone }}</dd></div>{% endif %}
+          <div><dt>Profession</dt><dd>{{ row.profession }} ({{ row.category }})</dd></div>
+          <div><dt>Country</dt><dd>{{ row.country }}</dd></div>
+          <div><dt>Experience</dt><dd>{{ row.years_experience }} years</dd></div>
+          <div><dt>Availability</dt><dd>{{ row.availability }}</dd></div>
+          <div><dt>Skills</dt><dd>{{ row.skills }}</dd></div>
+          <div><dt>Languages</dt><dd>{{ row.languages }}</dd></div>
+          {% if row.expected_rate %}<div><dt>Expected rate</dt><dd>{{ row.expected_rate }}</dd></div>{% endif %}
+          {% if row.education %}<div><dt>Education</dt><dd>{{ row.education }}</dd></div>{% endif %}
+          {% if row.certifications %}<div><dt>Certifications</dt><dd>{{ row.certifications }}</dd></div>{% endif %}
+          {% if row.portfolio_url %}<div><dt>Portfolio</dt><dd><a href="{{ row.portfolio_url }}" rel="noopener nofollow ugc">{{ row.portfolio_url }}</a></dd></div>{% endif %}
+          {% for k, v in (row.details or {}).items() %}<div><dt>{{ k|replace('_',' ')|title }}</dt><dd>{{ v }}</dd></div>{% endfor %}
+          {% if row.bio %}<div><dt>Bio</dt><dd>{{ row.bio }}</dd></div>{% endif %}
+        </dl>
+
+        <h2>Activity</h2>
+        <ul class="log">{% for l in logs %}<li><strong>{{ l.action }}</strong> by {{ l.actor_label or 'system' }}<br><span class="small">{{ l.created_at|dt(True) }}</span></li>{% else %}<li>No activity yet.</li>{% endfor %}</ul>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block head %}<meta name="robots" content="noindex">{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="wrap narrow">
+    <h1>Talent verification</h1>
+    {% if found %}
+      <p class="flash {{ 'flash-success' if valid else 'flash-error' }}" role="status">
+        {% if valid %}This is a valid VerifyTalent Global Talent ID.{% else %}This Talent ID is not currently valid ({{ card_status.title() }}).{% endif %}</p>
+      <dl class="profile">
+        <div><dt>Talent ID</dt><dd>{{ talent_id }}</dd></div>
+        <div><dt>Name</dt><dd>{{ name }}</dd></div>
+        <div><dt>Profession</dt><dd>{{ profession }}</dd></div>
+        <div><dt>Verification status</dt><dd>Verified Talent</dd></div>
+        <div><dt>Issued</dt><dd>{{ issued|dt }}</dd></div>
+        {% if expires %}<div><dt>Valid until</dt><dd>{{ expires|dt }}</dd></div>{% endif %}
+      </dl>
+      <p class="small">This is an internal VerifyTalent Global professional ID, not a government-issued document. Verification does not guarantee employment or placement.</p>
+    {% else %}
+      <p class="flash flash-error" role="status">No VerifyTalent Global record was found for this Talent ID.</p>
+      <p>Check the ID and try again. Talent IDs look like VTG-TL-000001.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

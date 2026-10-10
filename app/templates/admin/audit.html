@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <h1>Audit log</h1>
+    {% include "admin/_nav.html" %}
+    <p>The latest 100 recorded actions.</p>
+    <div class="table-scroll"><table>
+      <thead><tr><th>When</th><th>Who</th><th>Action</th><th>Target</th><th>Details</th></tr></thead>
+      <tbody>{% for l in logs %}
+        <tr><td>{{ l.created_at|dt(True) }}</td><td>{{ l.actor_label or 'anonymous' }}</td><td>{{ l.action }}</td>
+        <td>{{ l.target_id or '' }}</td><td>{{ l.meta or '' }}</td></tr>
+      {% else %}<tr><td colspan="5">Nothing recorded yet.</td></tr>{% endfor %}</tbody>
+    </table></div>
+  </div>
+</section>
+{% endblock %}

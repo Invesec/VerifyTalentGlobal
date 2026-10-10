@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% from "_forms.html" import field, area with context %}
+{% block content %}
+<section class="section form-page">
+  <div class="wrap narrow">
+    <h1>Join the talent network</h1>
+    <p class="section-intro">Registration is free. Our team reviews every application. Registering does not guarantee employment, an interview, a job offer, or placement.</p>
+    {% if errors %}<p class="flash flash-error" role="alert">Please fix the {{ errors|length }} highlighted {{ 'field' if errors|length == 1 else 'fields' }} below.</p>{% endif %}
+
+    <form method="post" action="{{ url_for('auth.register') }}" novalidate data-wizard>
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+
+      <fieldset>
+        <legend>Your account</legend>
+        {{ field("full_name", "Full name", required=True, autocomplete="name", maxlength=100) }}
+        {{ field("email", "Email address", type="email", required=True, autocomplete="email", maxlength=254) }}
+        {{ field("password", "Password", type="password", required=True, autocomplete="new-password", help="At least 10 characters.", maxlength=128) }}
+        {{ field("confirm_password", "Confirm password", type="password", required=True, autocomplete="new-password", maxlength=128) }}
+      </fieldset>
+
+      <fieldset>
+        <legend>Your profession</legend>
+        <div class="field{% if errors.get('profession') %} has-error{% endif %}">
+          <label for="profession">Primary profession</label>
+          <select id="profession" name="profession" required data-groups='{{ group_map|tojson }}'>
+            <option value="">Choose your profession</option>
+            {% for category, professions in categories.items() %}
+            <optgroup label="{{ category }}">
+              {% for p in professions %}<option value="{{ p }}" {% if form.get('profession') == p %}selected{% endif %}>{{ p }}</option>{% endfor %}
+            </optgroup>
+            {% endfor %}
+          </select>
+          {% if errors.get('profession') %}<p class="error" role="alert">{{ errors['profession'] }}</p>{% endif %}
+        </div>
+        {{ field("country", "Country", required=True, autocomplete="country-name", maxlength=60) }}
+        {{ field("phone", "Phone number", type="tel", autocomplete="tel", maxlength=30, inputmode="tel") }}
+        {{ field("years_experience", "Years of experience", type="number", required=True, inputmode="numeric", maxlength=2) }}
+        {{ area("skills", "Skills", required=True, help="List your main skills, separated by commas.") }}
+        {{ area("education", "Education") }}
+        {{ area("certifications", "Certifications") }}
+        {{ field("portfolio_url", "Portfolio link", type="url", help="Starts with http:// or https://", maxlength=300) }}
+        <div class="field{% if errors.get('availability') %} has-error{% endif %}">
+          <label for="availability">Availability</label>
+          <select id="availability" name="availability" required>
+            <option value="">Choose one</option>
+            {% for a in availability %}<option value="{{ a }}" {% if form.get('availability') == a %}selected{% endif %}>{{ a }}</option>{% endfor %}
+          </select>
+          {% if errors.get('availability') %}<p class="error" role="alert">{{ errors['availability'] }}</p>{% endif %}
+        </div>
+        {{ field("expected_rate", "Expected rate", help="For example: $15 per hour", maxlength=60) }}
+        {{ field("languages", "Languages you speak", required=True, help="For example: English (fluent), Efik (native)") }}
+        {{ area("bio", "Short bio", maxlength=1500, rows=4) }}
+      </fieldset>
+
+      {% for key, group in groups.items() %}
+      <fieldset class="group" data-group="{{ key }}">
+        <legend>{{ group[0] }}</legend>
+        {% for fname, flabel in group[2] %}{{ area(key ~ "__" ~ fname, flabel, maxlength=800, rows=2) }}{% endfor %}
+      </fieldset>
+      {% endfor %}
+
+      <fieldset class="step-final">
+        <legend>Confirm and submit</legend>
+      <div class="field check{% if errors.get('accept') %} has-error{% endif %}">
+        <label class="check-label">
+          <input type="checkbox" name="accept" value="yes" required {% if form.get('accept') == 'yes' %}checked{% endif %}>
+          <span>I understand that registering does not guarantee employment, an interview, a job offer, or placement, and that VerifyTalent Global will contact me if my application progresses.</span>
+        </label>
+        {% if errors.get('accept') %}<p class="error" role="alert">{{ errors['accept'] }}</p>{% endif %}
+      </div>
+      </fieldset>
+
+      <p class="small">By continuing you also agree to our <a href="{{ url_for('main.page_terms') }}">Terms of Use</a> and <a href="{{ url_for('main.page_privacy') }}">Privacy Policy</a>.</p>
+      <button class="btn btn-navy" type="submit">Submit application</button>
+      <p class="form-alt">Already applied? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+    </form>
+  </div>
+</section>
+<script src="{{ url_for('static', filename='js/register.js') }}" defer></script>
+{% endblock %}

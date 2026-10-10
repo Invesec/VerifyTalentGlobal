@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section"><div class="wrap narrow prose">
+  <h1>Talent categories</h1>
+  <p>We review applications in these professional categories.</p>
+  {% for category, professions in categories.items() %}
+  <h2>{{ category }}</h2>
+  <ul>{% for p in professions %}<li>{{ p }}</li>{% endfor %}</ul>
+  {% endfor %}
+  <p><a class="btn btn-gold" href="{{ url_for('auth.register') }}">Join the talent network</a></p>
+</div></section>
+{% endblock %}

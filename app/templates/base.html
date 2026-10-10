@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }}</title>
+  <meta name="description" content="VerifyTalent Global connects companies with qualified remote professionals by finding, screening, verifying, onboarding, and matching talent.">
+  <meta name="theme-color" content="#0A2A6B">
+  <meta property="og:title" content="VerifyTalent Global">
+  <meta property="og:description" content="Find. Verify. Match.">
+  <meta property="og:image" content="{{ url_for('static', filename='images/logo-full.png') }}">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/icon-192.png') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="brand" href="{{ url_for('main.home') }}" aria-label="VerifyTalent Global home">
+      <img src="{{ url_for('static', filename='images/logo-mark.png') }}" alt="" width="46" height="37">
+      <span class="wordmark">Verify<b>Talent</b>Global</span>
+    </a>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
+    <nav id="site-nav" class="site-nav" aria-label="Main">
+      <a href="{{ url_for('main.home') }}#how-it-works">How it works</a>
+      <a href="{{ url_for('main.home') }}#for-professionals">For professionals</a>
+      <a href="{{ url_for('main.home') }}#for-companies">For companies</a>
+      <a href="{{ url_for('main.home') }}#categories">Categories</a>
+      {% if current_user %}
+        {% if current_user.role == 'ADMIN' %}<a href="{{ url_for('admin.dashboard') }}">Admin</a>{% elif current_user.role == 'CLIENT' %}<a href="{{ url_for('client.dashboard') }}">Dashboard</a>{% else %}<a href="{{ url_for('talent.dashboard') }}">Dashboard</a>{% endif %}
+        <a href="{{ url_for('account.notifications') }}">Notifications{% if unread_count %} <span class="badge" aria-label="{{ unread_count }} unread">{{ unread_count }}</span>{% endif %}</a>
+        <a href="{{ url_for('account.password') }}">Account</a>
+        <form method="post" action="{{ url_for('auth.logout') }}" class="nav-form">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button type="submit" class="nav-link-btn">Log out</button>
+        </form>
+      {% else %}
+        <a href="{{ url_for('auth.register_company') }}">Hire talent</a>
+        <a href="{{ url_for('auth.login') }}">Log in</a>
+        <a class="nav-cta" href="{{ url_for('auth.register') }}">Join the network</a>
+      {% endif %}
+    </nav>
+  </div>
+</header>
+<main id="main">
+{% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}
+<div class="wrap flashes">{% for category, message in messages %}<p class="flash flash-{{ category }}" role="status">{{ message }}</p>{% endfor %}</div>
+{% endif %}{% endwith %}
+{% block content %}{% endblock %}
+</main>
+<footer class="site-footer">
+  <div class="wrap foot-grid">
+    <div>
+      <a class="brand" href="{{ url_for('main.home') }}" aria-label="VerifyTalent Global home">
+        <img src="{{ url_for('static', filename='images/logo-mark.png') }}" alt="" width="46" height="37">
+        <span class="wordmark">Verify<b>Talent</b>Global</span>
+      </a>
+      <p class="foot-tag">{{ brand_tagline }}</p>
+    </div>
+    <div>
+      <p class="foot-head">Contact</p>
+      {% if company_email or telegram_username %}
+        {% if company_email %}<p><a href="mailto:{{ company_email }}">{{ company_email }}</a></p>{% endif %}
+        {% if telegram_username %}<p><a href="https://t.me/{{ telegram_username }}" rel="noopener">Telegram: @{{ telegram_username }}</a></p>{% endif %}
+      {% else %}
+        <p>Contact details will be published here soon.</p>
+      {% endif %}
+    </div>
+    <nav class="foot-links" aria-label="Footer">
+      <a href="{{ url_for('main.page_about') }}">About</a>
+      <a href="{{ url_for('main.page_how_it_works') }}">How it works</a>
+      <a href="{{ url_for('main.page_find_talent') }}">Find talent</a>
+      <a href="{{ url_for('main.page_for_companies') }}">For companies</a>
+      <a href="{{ url_for('main.page_categories') }}">Categories</a>
+      <a href="{{ url_for('main.page_contact') }}">Contact</a>
+      <a href="{{ url_for('main.page_privacy') }}">Privacy Policy</a>
+      <a href="{{ url_for('main.page_terms') }}">Terms of Use</a>
+    </nav>
+    <p class="fine">VerifyTalent Global does not guarantee employment, interviews, job offers, or placement. Talent ID cards are internal VerifyTalent Global professional identification, not government-issued documents.</p>
+    <p class="fine">&copy; {{ year }} VerifyTalent Global. All rights reserved.</p>
+  </div>
+</footer>
+<script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/forms.js') }}" defer></script>
+</body>
+</html>

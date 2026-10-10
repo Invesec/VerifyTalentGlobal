@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <h1>Payments</h1>
+    {% include "admin/_nav.html" %}
+    <p>Payments are verified manually. Open a talent to record the reference and confirm.</p>
+    {% if rows %}
+    <div class="table-scroll"><table>
+      <thead><tr><th>Application</th><th>Name</th><th>Payment</th><th>Reference</th><th>Updated</th></tr></thead>
+      <tbody>{% for a, u in rows %}
+        <tr><td><a href="{{ url_for('admin.talent_detail', app_pk=a.id) }}">{{ a.application_id }}</a></td><td>{{ u.full_name }}</td>
+        <td>{{ payment_labels.get(a.payment_status, a.payment_status) }}</td><td>{{ a.payment_reference or '' }}</td><td>{{ a.updated_at|dt }}</td></tr>
+      {% endfor %}</tbody>
+    </table></div>
+    {% else %}<p>No pending payments.</p>{% endif %}
+  </div>
+</section>
+{% endblock %}

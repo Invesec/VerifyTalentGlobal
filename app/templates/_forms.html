@@ -1,0 +1,23 @@
+{% macro field(name, label, type="text", required=False, help="", autocomplete="", maxlength=200, inputmode="") %}
+<div class="field{% if errors.get(name) %} has-error{% endif %}">
+  <label for="{{ name }}">{{ label }}{% if not required %} <span class="opt">(optional)</span>{% endif %}</label>
+  {% if help %}<p class="help" id="{{ name }}-help">{{ help }}</p>{% endif %}
+  <input id="{{ name }}" name="{{ name }}" type="{{ type }}" maxlength="{{ maxlength }}"
+    {% if type != 'password' %}value="{{ form.get(name, '') }}"{% endif %}
+    {% if required %}required{% endif %} {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}
+    {% if inputmode %}inputmode="{{ inputmode }}"{% endif %}
+    aria-describedby="{% if help %}{{ name }}-help {% endif %}{% if errors.get(name) %}{{ name }}-error{% endif %}"
+    {% if errors.get(name) %}aria-invalid="true"{% endif %}>
+  {% if errors.get(name) %}<p class="error" id="{{ name }}-error" role="alert">{{ errors[name] }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro area(name, label, required=False, help="", maxlength=1000, rows=3) %}
+<div class="field{% if errors.get(name) %} has-error{% endif %}">
+  <label for="{{ name }}">{{ label }}{% if not required %} <span class="opt">(optional)</span>{% endif %}</label>
+  {% if help %}<p class="help" id="{{ name }}-help">{{ help }}</p>{% endif %}
+  <textarea id="{{ name }}" name="{{ name }}" rows="{{ rows }}" maxlength="{{ maxlength }}" {% if required %}required{% endif %}
+    {% if errors.get(name) %}aria-invalid="true" aria-describedby="{{ name }}-error"{% endif %}>{{ form.get(name, '') }}</textarea>
+  {% if errors.get(name) %}<p class="error" id="{{ name }}-error" role="alert">{{ errors[name] }}</p>{% endif %}
+</div>
+{% endmacro %}

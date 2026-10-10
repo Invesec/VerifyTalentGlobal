@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <h1>Company profile</h1>
+    {% include "client/_nav.html" %}
+    <dl class="profile">
+      <div><dt>Company</dt><dd>{{ capp.company_name }}</dd></div>
+      {% if capp.website %}<div><dt>Website</dt><dd><a href="{{ capp.website }}" rel="noopener nofollow ugc">{{ capp.website }}</a></dd></div>{% endif %}
+      <div><dt>Industry</dt><dd>{{ capp.industry }}</dd></div>
+      <div><dt>Country</dt><dd>{{ capp.country }}</dd></div>
+      <div><dt>Size</dt><dd>{{ capp.company_size }} employees</dd></div>
+      <div><dt>Contact</dt><dd>{{ capp.contact_name }}, {{ capp.job_title }}</dd></div>
+      <div><dt>Business email</dt><dd>{{ capp.business_email }}</dd></div>
+      {% if capp.phone %}<div><dt>Phone</dt><dd>{{ capp.phone }}</dd></div>{% endif %}
+      {% if capp.linkedin_url %}<div><dt>LinkedIn</dt><dd><a href="{{ capp.linkedin_url }}" rel="noopener nofollow ugc">{{ capp.linkedin_url }}</a></dd></div>{% endif %}
+      {% if capp.description %}<div><dt>Description</dt><dd>{{ capp.description }}</dd></div>{% endif %}
+      <div><dt>Recruitment needs</dt><dd>{{ capp.recruitment_needs }}</dd></div>
+    </dl>
+  </div>
+</section>
+{% endblock %}

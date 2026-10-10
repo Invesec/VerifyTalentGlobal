@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="wrap narrow">
+    <h1>Opportunities</h1>
+    <p><a href="{{ url_for('talent.dashboard') }}">Back to dashboard</a></p>
+    <p class="small">Being shortlisted does not guarantee an interview, a job offer, or placement. Client names and budgets are shared only once an interview is arranged.</p>
+    {% for m, j in rows %}
+    <article class="match">
+      <h2>{{ j.title }} <span class="chip">{{ labels.get(m.status, m.status) }}</span></h2>
+      <dl class="profile">
+        <div><dt>Profession</dt><dd>{{ j.profession }}</dd></div>
+        <div><dt>Work</dt><dd>{{ j.work_mode }}{% if j.location %}, {{ j.location }}{% endif %} &middot; {{ j.contract_type }}{% if j.contract_duration %}, {{ j.contract_duration }}{% endif %}</dd></div>
+        {% if j.start_date %}<div><dt>Start date</dt><dd>{{ j.start_date|dt }}</dd></div>{% endif %}
+        <div><dt>Skills wanted</dt><dd>{{ j.required_skills }}</dd></div>
+        <div><dt>About the role</dt><dd>{{ j.description }}</dd></div>
+        {% if m.status in ('INTERVIEWING', 'PLACED') %}<div><dt>Company</dt><dd>{{ j.client.company_name }}</dd></div>{% endif %}
+        {% if m.status == 'INTERVIEWING' and m.interview_at %}<div><dt>Interview</dt><dd>{{ m.interview_at|dt(True) }}<br>{{ m.interview_details }}</dd></div>{% endif %}
+      </dl>
+      {% if m.status in ('SHORTLISTED', 'PRESENTED') %}
+        {% if m.talent_response == 'PENDING' %}
+        <div class="actions">
+          <form method="post" action="{{ url_for('talent.respond', match_pk=m.id) }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="response" value="INTERESTED"><button class="btn btn-gold" type="submit">I am interested</button></form>
+          <form method="post" action="{{ url_for('talent.respond', match_pk=m.id) }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="response" value="DECLINED"><button class="btn btn-navy" type="submit">Not interested</button></form>
+        </div>
+        {% else %}<p class="chip chip-muted">You answered: {{ 'Interested' if m.talent_response == 'INTERESTED' else 'Not interested' }}</p>{% endif %}
+      {% endif %}
+    </article>
+    {% else %}
+    <p>There are no opportunities for you yet. We will email you when you are shortlisted for a role.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

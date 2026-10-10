@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section form-page">
+  <div class="wrap narrow">
+    <h1>Verify your email</h1>
+    <p class="section-intro">We sent a 6-digit code to <strong>{{ masked }}</strong>. Enter it below to continue. The code works for 15 minutes.</p>
+    {% if error %}<p class="flash flash-error" role="alert">{{ error }}</p>{% endif %}
+    <form method="post" action="{{ url_for('auth.verify_email') }}" class="login-form">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <div class="field">
+        <label for="code">Verification code</label>
+        <input id="code" name="code" class="code-input" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required autofocus>
+      </div>
+      <button class="btn btn-navy" type="submit">Verify email</button>
+    </form>
+    <form method="post" action="{{ url_for('auth.verify_email_resend') }}" class="stack" style="margin-top:22px">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <button class="btn btn-gold" type="submit" id="resend" data-cooldown="{{ cooldown }}">{{ 'Send me a code' if not has_code else 'Send a new code' }}</button>
+    </form>
+    <p class="small">Check your spam folder if it does not arrive. Wrong address? Log out and register again with the right one.</p>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <h1>{{ job.title }}</h1>
+    {% include "client/_nav.html" %}
+    <p class="meta"><strong>{{ job.job_id }}</strong> <span class="chip">{{ labels.get(job.status, job.status) }}</span></p>
+    <div class="actions" style="margin-bottom:20px">
+      {% if job.status == 'DRAFT' %}
+        <a class="btn btn-navy" href="{{ url_for('client.job_edit', job_pk=job.id) }}">Edit draft</a>
+        <form method="post" action="{{ url_for('client.job_submit', job_pk=job.id) }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="btn btn-gold" type="submit">Submit to VerifyTalent Global</button></form>
+      {% endif %}
+      {% if job.status not in ('FILLED', 'CLOSED') %}
+        <form method="post" action="{{ url_for('client.job_close', job_pk=job.id) }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="btn btn-danger" type="submit" data-confirm="Close this job request?">Close request</button></form>
+      {% endif %}
+    </div>
+
+    <div class="two-col">
+      <div>
+        <h2>Presented candidates</h2>
+        <p class="small">{{ score_note }} Our team reviews every candidate before presenting them to you. Contact details stay with VerifyTalent Global.</p>
+        {% for m, t in rows %}
+        <article class="match">
+          <h3>{{ t.user.full_name }} <span class="chip chip-muted">{{ t.talent_id }}</span></h3>
+          <p class="small">{{ t.profession }} &middot; {{ t.years_experience }} years &middot; {{ t.country }}</p>
+          <p><strong>Match Score: {{ m.score }}%</strong> <span class="chip">{{ match_labels.get(m.status, m.status) }}</span></p>
+          <p>{{ t.skills }}</p>
+          {% if m.status == 'INTERVIEWING' and m.interview_at %}<p><strong>Interview:</strong> {{ m.interview_at|dt(True) }}<br>{{ m.interview_details }}</p>{% endif %}
+          {% if m.status == 'PRESENTED' %}
+            {% if m.client_decision == 'INTERVIEW_REQUESTED' %}<p class="chip">Interview requested</p>
+            {% else %}<form method="post" action="{{ url_for('client.request_interview', job_pk=job.id, match_pk=m.id) }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button class="btn btn-navy" type="submit">Request interview</button></form>{% endif %}
+          {% endif %}
+        </article>
+        {% else %}
+        <p>No candidates have been presented yet. We will notify you when they are ready.</p>
+        {% endfor %}
+      </div>
+      <div>
+        <h2>Request details</h2>
+        <dl class="profile">
+          <div><dt>Profession</dt><dd>{{ job.profession }} ({{ job.category }})</dd></div>
+          <div><dt>Workers needed</dt><dd>{{ job.workers_needed }}</dd></div>
+          <div><dt>Required skills</dt><dd>{{ job.required_skills }}</dd></div>
+          <div><dt>Minimum experience</dt><dd>{{ job.min_experience_years }} years</dd></div>
+          <div><dt>Work mode</dt><dd>{{ job.work_mode }}{% if job.location %}, {{ job.location }}{% endif %}{% if job.timezone %} ({{ job.timezone }}){% endif %}</dd></div>
+          <div><dt>Contract</dt><dd>{{ job.contract_type }}{% if job.contract_duration %}, {{ job.contract_duration }}{% endif %}</dd></div>
+          {% if job.start_date %}<div><dt>Start date</dt><dd>{{ job.start_date|dt }}</dd></div>{% endif %}
+          {% if job.budget %}<div><dt>Budget</dt><dd>{{ job.budget }} {{ job.currency or '' }}</dd></div>{% endif %}
+          {% if job.qualifications %}<div><dt>Qualifications</dt><dd>{{ job.qualifications }}</dd></div>{% endif %}
+          {% if job.certifications %}<div><dt>Certifications</dt><dd>{{ job.certifications }}</dd></div>{% endif %}
+          <div><dt>Description</dt><dd>{{ job.description }}</dd></div>
+          {% if job.additional_requirements %}<div><dt>Additional requirements</dt><dd>{{ job.additional_requirements }}</dd></div>{% endif %}
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

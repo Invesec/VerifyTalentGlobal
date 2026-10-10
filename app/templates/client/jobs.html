@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <h1>Job requests</h1>
+    {% include "client/_nav.html" %}
+    <p><a class="btn btn-gold" href="{{ url_for('client.job_new') }}">Post a job request</a></p>
+    {% if items %}
+    <div class="table-scroll"><table>
+      <thead><tr><th>ID</th><th>Title</th><th>Profession</th><th>Workers</th><th>Status</th></tr></thead>
+      <tbody>{% for j in items %}
+        <tr><td><a href="{{ url_for('client.job_detail', job_pk=j.id) }}">{{ j.job_id }}</a></td><td>{{ j.title }}</td>
+        <td>{{ j.profession }}</td><td>{{ j.workers_needed }}</td><td>{{ labels.get(j.status, j.status) }}</td></tr>
+      {% endfor %}</tbody>
+    </table></div>
+    {% else %}<p>You have not posted any job requests yet.</p>{% endif %}
+  </div>
+</section>
+{% endblock %}

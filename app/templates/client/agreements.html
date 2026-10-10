@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="wrap narrow">
+    <h1>Agreements</h1>
+    {% include "client/_nav.html" %}
+    {% for a in items %}
+    <article class="agreement">
+      <h2>{{ a.agreement_id }} <span class="chip">{{ labels.get(a.status, a.status) }}</span></h2>
+      <dl class="profile">
+        <div><dt>Type</dt><dd>{{ a.agreement_type }}</dd></div>
+        {% if a.sent_at %}<div><dt>Sent</dt><dd>{{ a.sent_at|dt }}</dd></div>{% endif %}
+        {% if a.expires_at %}<div><dt>Respond by / valid until</dt><dd>{{ a.expires_at|dt }}</dd></div>{% endif %}
+        {% if a.accepted_at %}<div><dt>Accepted</dt><dd>{{ a.accepted_at|dt }}{% if a.accepted_by_name %} by {{ a.accepted_by_name }}{% endif %}</dd></div>{% endif %}
+        {% if a.document_reference %}<div><dt>Document</dt><dd>
+          {% if a.document_reference.startswith('http://') or a.document_reference.startswith('https://') %}<a href="{{ a.document_reference }}" rel="noopener nofollow ugc">Open the agreement document</a>
+          {% else %}{{ a.document_reference }}{% endif %}</dd></div>{% endif %}
+      </dl>
+      {% if a.status in ('SENT', 'VIEWED') %}
+        {% if a.expires_at and a.expires_at < today %}
+          <p class="flash flash-error">This agreement has expired. Please contact VerifyTalent Global.</p>
+        {% else %}
+        <p>Read the document before accepting. Accepting is a formal step that records your name and the time.</p>
+        <form method="post" action="{{ url_for('client.accept', agreement_pk=a.id) }}" class="stack">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <div class="field"><label for="signed_name-{{ a.id }}">Type your full name</label>
+            <input id="signed_name-{{ a.id }}" name="signed_name" maxlength="100" required autocomplete="name"></div>
+          <label class="check-label"><input type="checkbox" name="accept" value="yes" required>
+            <span>I am authorised to accept this agreement for {{ capp.company_name }}.</span></label>
+          <div class="actions" style="margin-top:14px">
+            <button class="btn btn-gold" type="submit">Accept agreement</button>
+          </div>
+        </form>
+        <form method="post" action="{{ url_for('client.decline', agreement_pk=a.id) }}">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="btn btn-danger" type="submit" data-confirm="Decline this agreement?">Decline</button>
+        </form>
+        {% endif %}
+      {% endif %}
+    </article>
+    {% else %}
+    <p>There are no agreements yet. We will email you when your agreement is ready.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

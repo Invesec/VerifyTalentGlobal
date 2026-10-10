@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="wrap narrow">
+    <h1>Notifications</h1>
+    {% for n, was_new in rows %}
+    <article class="note {{ 'note-new' if was_new }}">
+      <h2>{{ n.title }} {% if was_new %}<span class="chip">New</span>{% endif %}</h2>
+      <p>{{ n.body }}</p>
+      <p class="small">{{ n.created_at|dt(True) }}</p>
+    </article>
+    {% else %}<p>You have no notifications yet.</p>{% endfor %}
+  </div>
+</section>
+{% endblock %}

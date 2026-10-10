@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% from "_forms.html" import field, area with context %}
+{% block content %}
+<section class="section form-page">
+  <div class="wrap narrow">
+    <h1>{{ 'Edit draft ' ~ editing.job_id if editing else 'New job request' }}</h1>
+    <p class="section-intro">Tell us what you need. Our team reviews every request and presents suitable verified talent to you. Matches are not a guarantee of hiring.</p>
+    {% if errors %}<p class="flash flash-error" role="alert">Please fix the {{ errors|length }} highlighted {{ 'field' if errors|length == 1 else 'fields' }} below.</p>{% endif %}
+    <form method="post" novalidate>
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <fieldset>
+        <legend>The role</legend>
+        {{ field("title", "Job title", required=True, maxlength=120) }}
+        <div class="field{% if errors.get('profession') %} has-error{% endif %}">
+          <label for="profession">Profession needed</label>
+          <select id="profession" name="profession" required>
+            <option value="">Choose a profession</option>
+            {% for category, professions in categories.items() %}
+            <optgroup label="{{ category }}">{% for p in professions %}<option value="{{ p }}" {% if form.get('profession') == p %}selected{% endif %}>{{ p }}</option>{% endfor %}</optgroup>
+            {% endfor %}
+          </select>
+          {% if errors.get('profession') %}<p class="error" role="alert">{{ errors['profession'] }}</p>{% endif %}
+        </div>
+        {{ field("workers_needed", "Number of workers", type="number", required=True, inputmode="numeric", maxlength=3) }}
+        {{ area("required_skills", "Required skills", required=True, help="List the main skills, separated by commas. We use these for matching.") }}
+        {{ field("min_experience_years", "Minimum years of experience", type="number", required=True, inputmode="numeric", maxlength=2) }}
+        {{ area("qualifications", "Qualifications") }}
+        {{ area("certifications", "Certifications") }}
+        {{ area("description", "Job description", required=True, maxlength=3000, rows=6) }}
+        {{ area("additional_requirements", "Additional requirements", maxlength=1500) }}
+      </fieldset>
+      <fieldset>
+        <legend>Terms</legend>
+        {{ field("location", "Location (country or city)", maxlength=100) }}
+        {{ field("timezone", "Timezone", help="For example: UTC+1", maxlength=60) }}
+        <div class="field{% if errors.get('work_mode') %} has-error{% endif %}">
+          <label for="work_mode">Work mode</label>
+          <select id="work_mode" name="work_mode" required>{% for m in work_modes %}<option {% if form.get('work_mode') == m %}selected{% endif %}>{{ m }}</option>{% endfor %}</select>
+          {% if errors.get('work_mode') %}<p class="error" role="alert">{{ errors['work_mode'] }}</p>{% endif %}
+        </div>
+        <div class="field{% if errors.get('contract_type') %} has-error{% endif %}">
+          <label for="contract_type">Contract type</label>
+          <select id="contract_type" name="contract_type" required><option value="">Choose one</option>{% for t in contract_types %}<option {% if form.get('contract_type') == t %}selected{% endif %}>{{ t }}</option>{% endfor %}</select>
+          {% if errors.get('contract_type') %}<p class="error" role="alert">{{ errors['contract_type'] }}</p>{% endif %}
+        </div>
+        {{ field("contract_duration", "Contract duration", help="For example: 6 months", maxlength=60) }}
+        {{ field("start_date", "Start date", type="date", help="Optional") }}
+        {{ field("budget", "Budget", help="An amount or range, for example 1500-2000 per month", maxlength=40) }}
+        <div class="field">
+          <label for="currency">Currency <span class="opt">(optional)</span></label>
+          <select id="currency" name="currency"><option value="">Choose one</option>{% for c in currencies %}<option {% if form.get('currency') == c %}selected{% endif %}>{{ c }}</option>{% endfor %}</select>
+        </div>
+      </fieldset>
+      <div class="actions">
+        <button class="btn btn-navy" type="submit" name="action" value="draft">Save as draft</button>
+        <button class="btn btn-gold" type="submit" name="action" value="submit">Submit to VerifyTalent Global</button>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

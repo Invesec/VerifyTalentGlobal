@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <h1>Welcome, {{ current_user.full_name.split(' ')[0] }}</h1>
+
+    {% include "_stepper.html" %}
+    <div class="two-col dash">
+      <div class="idcard" aria-label="Application summary">
+        {% if application.talent_id %}<p class="idcard-label">Talent ID</p><p class="idcard-id">{{ application.talent_id }} <button type="button" class="copy" data-copy="{{ application.talent_id }}">Copy</button></p>{% endif %}
+        <p class="idcard-label">Application ID</p>
+        <p class="idcard-id">{{ application.application_id }} <button type="button" class="copy" data-copy="{{ application.application_id }}">Copy</button></p>
+        <dl class="chips">
+          <div><dt>Application status</dt><dd><span class="chip">{{ status_label }}</span></dd></div>
+          <div><dt>Verification</dt><dd><span class="chip chip-muted">{{ application.verification_status.title() }}</span></dd></div>
+        </dl>
+        <p class="small">Quote your Application ID whenever you contact VerifyTalent Global. Status and verification are set by our team and cannot be changed from your account.</p>
+      </div>
+
+      <div>
+        <h2>What happens next</h2>
+        {% if application.talent_id %}
+          <p>You are a Verified Talent. Your Talent ID is <strong>{{ application.talent_id }}</strong>.</p>
+          <p class="actions"><a class="btn btn-navy" href="{{ url_for('talent.id_card') }}">View your ID card</a>
+          <a class="btn btn-gold" href="{{ url_for('talent.opportunities') }}">Opportunities</a></p>
+        {% elif onboarding %}
+          <p>You passed our initial review. Complete your onboarding to continue.</p>
+          <p><a class="btn btn-gold" href="{{ url_for('talent.onboarding') }}">Go to onboarding</a></p>
+        {% elif application.status == "NEW" %}
+          <p>Your application is waiting for review. Our team will contact you by email if it progresses.</p>
+        {% elif application.status == "REJECTED" %}
+          <p>We are not able to progress your application at this time. Thank you for applying.</p>
+        {% else %}
+          <p>Your application is being reviewed. Watch your email for any instructions from our team.</p>
+        {% endif %}
+        <p class="small">Registration does not guarantee employment, an interview, a job offer, or placement.</p>
+      </div>
+    </div>
+
+    <h2>Notifications</h2>
+    {% if notifications %}<ul class="log">{% for n in notifications %}<li><strong>{{ n.title }}</strong><br>{{ n.body }}<br><span class="small">{{ n.created_at|dt }}</span></li>{% endfor %}</ul>
+    <p><a href="{{ url_for('account.notifications') }}">See all notifications</a></p>
+    {% else %}<p class="small">No notifications yet.</p>{% endif %}
+
+    <h2>Your profile</h2>
+    <p><a class="btn btn-navy" href="{{ url_for('talent.profile_edit') }}">Edit profile</a></p>
+    <dl class="profile">
+      <div><dt>Profession</dt><dd>{{ application.profession }} ({{ application.category }})</dd></div>
+      <div><dt>Country</dt><dd>{{ application.country }}</dd></div>
+      <div><dt>Experience</dt><dd>{{ application.years_experience }} year{{ '' if application.years_experience == 1 else 's' }}</dd></div>
+      <div><dt>Availability</dt><dd>{{ application.availability }}</dd></div>
+      <div><dt>Skills</dt><dd>{{ application.skills }}</dd></div>
+      <div><dt>Languages</dt><dd>{{ application.languages }}</dd></div>
+      {% if application.expected_rate %}<div><dt>Expected rate</dt><dd>{{ application.expected_rate }}</dd></div>{% endif %}
+      {% if application.education %}<div><dt>Education</dt><dd>{{ application.education }}</dd></div>{% endif %}
+      {% if application.certifications %}<div><dt>Certifications</dt><dd>{{ application.certifications }}</dd></div>{% endif %}
+      {% if application.portfolio_url %}<div><dt>Portfolio</dt><dd><a href="{{ application.portfolio_url }}" rel="noopener nofollow ugc">{{ application.portfolio_url }}</a></dd></div>{% endif %}
+      {% for label, value in details %}<div><dt>{{ label }}</dt><dd>{{ value }}</dd></div>{% endfor %}
+      {% if application.bio %}<div><dt>Bio</dt><dd>{{ application.bio }}</dd></div>{% endif %}
+    </dl>
+  </div>
+</section>
+{% endblock %}

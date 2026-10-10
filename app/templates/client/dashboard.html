@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <h1>{{ capp.company_name }}</h1>
+    {% include "client/_nav.html" %}
+
+    {% include "_stepper.html" %}
+    <div class="two-col dash">
+      <div class="idcard" aria-label="Account summary">
+        {% if client %}
+          <p class="idcard-label">Client ID</p><p class="idcard-id">{{ client.client_id }} <button type="button" class="copy" data-copy="{{ client.client_id }}">Copy</button></p>
+        {% endif %}
+        <p class="idcard-label">Application ID</p>
+        <p class="{{ 'idcard-id' if not client else 'idcard-sub' }}">{{ capp.application_id }}</p>
+        <dl class="chips">
+          <div><dt>Account status</dt><dd><span class="chip">{{ status_label }}</span></dd></div>
+          <div><dt>Contract</dt><dd>{% if agreement %}{{ agreement.agreement_id }} ({{ agreement_labels.get(agreement.status, agreement.status) }}){% else %}None yet{% endif %}</dd></div>
+          {% if client %}<div><dt>Membership</dt><dd><span class="chip chip-muted">{{ client.membership_status.title() }}</span></dd></div>{% endif %}
+        </dl>
+        <p class="small">Your status is set by our team. An official Client ID is issued only after approval, agreement acceptance, and activation.</p>
+      </div>
+
+      <div>
+        <h2>What happens next</h2>
+        {% if capp.status in ("NEW", "UNDER_REVIEW") %}
+          <p>Your company application is under review. We will email you when there is an update.</p>
+        {% elif capp.status in ("APPROVED", "AGREEMENT_PENDING") %}
+          <p>Your company is approved. We are preparing your client agreement and will email you when it is ready.</p>
+        {% elif capp.status == "AGREEMENT_SENT" %}
+          <p>Your client agreement is ready for review.</p>
+          <p><a class="btn btn-gold" href="{{ url_for('client.agreements') }}">Review agreement</a></p>
+        {% elif capp.status == "AGREEMENT_ACCEPTED" %}
+          <p>Thank you for accepting the agreement. Our team will activate your account shortly.</p>
+        {% elif capp.status == "ACTIVE" %}
+          <p>Your account is active. Post a job request and our team will review matches before presenting them to you.</p>
+          <p><a class="btn btn-gold" href="{{ url_for('client.job_new') }}">Post a job request</a></p>
+        {% elif capp.status == "SUSPENDED" %}
+          <p>Your account is suspended. Please contact VerifyTalent Global.</p>
+        {% elif capp.status == "EXPIRED" %}
+          <p>Your membership has expired. Please contact VerifyTalent Global to renew.</p>
+        {% else %}
+          <p>We are not able to progress this application at this time.</p>
+        {% endif %}
+        <p class="small">Registration does not guarantee talent matches or hires.</p>
+      </div>
+    </div>
+    {% if client %}
+    <h2>Job requests</h2>
+    {% if jobs %}<ul class="log">{% for j in jobs %}<li><a href="{{ url_for('client.job_detail', job_pk=j.id) }}"><strong>{{ j.job_id or 'Draft' }}</strong> {{ j.title }}</a> <span class="chip chip-muted">{{ job_labels.get(j.status, j.status) }}</span></li>{% endfor %}</ul>
+    {% else %}<p class="small">No job requests yet.</p>{% endif %}
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

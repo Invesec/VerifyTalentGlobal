@@ -1,0 +1,17 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+instance/
+*.db
+*.sqlite3
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+uploads/
+private/
+*.log
+.DS_Store

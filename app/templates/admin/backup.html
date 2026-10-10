@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="wrap narrow">
+    <h1>Backup</h1>
+    {% include "admin/_nav.html" %}
+    <p>Download all your data as a ZIP of spreadsheet (CSV) files, one per table. Keep a copy somewhere private, for example on your phone and in cloud storage you control.</p>
+    <p class="small">The file contains personal data. Password hashes are left out. A restore needs a developer: for a full database backup and restore, use the <code>pg_dump</code> steps in the README.</p>
+    <form method="post" action="{{ url_for('admin.backup_download') }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <button class="btn btn-gold" type="submit">Download backup</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <h1>Companies</h1>
+    {% include "admin/_nav.html" %}
+    <form method="get" class="filters" data-live-filter="#live-results">
+      <input type="search" name="q" value="{{ q }}" placeholder="Search company, ID, email" aria-label="Search">
+      <select name="status" aria-label="Status"><option value="">All statuses</option>
+        {% for key, label in labels.items() %}<option value="{{ key }}" {% if status == key %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+      <button class="btn btn-navy" type="submit">Filter</button>
+    </form>
+    <div id="live-results" aria-live="polite">
+    {% if rows %}
+    <div class="table-scroll"><table>
+      <thead><tr><th>Application</th><th>Company</th><th>Contact</th><th>Country</th><th>Status</th></tr></thead>
+      <tbody>{% for c in rows %}
+        <tr><td><a href="{{ url_for('admin_clients.client_detail', pk=c.id) }}">{{ c.application_id }}</a></td>
+        <td>{{ c.company_name }}{% if c.business_email.endswith(demo_domain) %} <span class="chip chip-muted">DEMO</span>{% endif %}</td>
+        <td>{{ c.contact_name }}</td><td>{{ c.country }}</td><td>{{ labels.get(c.status, c.status) }}</td></tr>
+      {% endfor %}</tbody>
+    </table></div>
+    <p class="pager">
+      {% if page > 1 %}<a href="{{ url_for('admin_clients.client_list', q=q, status=status, page=page-1) }}">Previous</a>{% endif %}
+      {% if has_next %}<a href="{{ url_for('admin_clients.client_list', q=q, status=status, page=page+1) }}">Next</a>{% endif %}
+    </p>
+    {% else %}<p>No companies match these filters.</p>{% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

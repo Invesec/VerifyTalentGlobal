@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section"><div class="wrap narrow prose">
+  <h1>How it works</h1>
+  <h2>For professionals</h2>
+  <ol>
+    <li><strong>Register for free.</strong> Create an account and tell us about your profession, skills, and experience.</li>
+    <li><strong>Screening.</strong> Our team reviews your application. We may ask you to complete an assessment.</li>
+    <li><strong>Approval.</strong> If you pass the initial review, you can move to onboarding. Approval is not a job offer.</li>
+    <li><strong>Verification and onboarding.</strong> You pay the one-time Talent Verification &amp; Onboarding Fee of $60 directly to our official administrator. We confirm the payment manually. There is no online payment on this site.</li>
+    <li><strong>Talent ID.</strong> Once payment is confirmed, you receive a VerifyTalent Global Talent ID and a digital ID card with a verification link.</li>
+    <li><strong>Matching.</strong> Verified talent is considered when relevant client roles open. You choose whether you are interested in each opportunity.</li>
+  </ol>
+  <div class="notice" role="note"><p><strong>What the $60 covers:</strong> application processing, professional screening/review, verification, talent profile creation, qualification/document review where applicable, your official VerifyTalent Global ID card, verified talent network onboarding, eligibility for relevant job matching, and onboarding support.</p>
+  <p class="strong">Payment does not guarantee employment, an interview, a job offer, or placement.</p></div>
+  <h2>For companies</h2>
+  <ol>
+    <li><strong>Register your company.</strong> Share your business details and recruitment needs.</li>
+    <li><strong>Company review and approval.</strong> We review every company before anything is activated.</li>
+    <li><strong>Client agreement.</strong> We send an agreement for you to read and accept.</li>
+    <li><strong>Activation.</strong> After approval and acceptance, your account is activated and you receive an official Client ID.</li>
+    <li><strong>Job requests.</strong> Post what you need. Our team scores verified talent, reviews the results, and presents suitable candidates.</li>
+    <li><strong>Interview and hire.</strong> Request interviews with presented candidates. We arrange them with the talent.</li>
+  </ol>
+  <h2>What verification means</h2>
+  <p>Verification at VerifyTalent Global means we have reviewed a professional's application and completed our onboarding checks. It is not a government identification, and it is not a guarantee of any person's skills, conduct, or suitability for a particular job.</p>
+  <p><a class="btn btn-gold" href="{{ url_for('auth.register') }}">Join the talent network</a> <a class="btn btn-navy" href="{{ url_for('auth.register_company') }}">Hire talent</a></p>
+</div></section>
+{% endblock %}

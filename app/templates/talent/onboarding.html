@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="wrap narrow">
+    <h1>Complete Your VerifyTalent Global Onboarding</h1>
+    <p class="meta">Your Application ID: <strong class="id-inline">{{ application.application_id }}</strong> <button type="button" class="copy" data-copy="{{ application.application_id }}">Copy</button></p>
+
+    <div class="notice" role="note">
+      <h2>Talent Verification &amp; Onboarding Fee: $60</h2>
+      <p><strong>Payment does not guarantee employment, a job offer, interview, or placement.</strong></p>
+    </div>
+
+    <h2>What the $60 covers</h2>
+    <ul class="ticks">
+      <li>Application processing</li><li>Professional screening/review</li><li>Professional/skill verification</li>
+      <li>Talent profile creation</li><li>Qualification/document review where applicable</li>
+      <li>Official VerifyTalent Global ID card</li><li>Verified Talent Network onboarding</li>
+      <li>Eligibility for relevant job matching</li><li>Onboarding support and communication</li>
+    </ul>
+
+    <h2>Payment instructions</h2>
+    <p>To complete payment, contact the official VerifyTalent Global administrator and quote your Application ID: <strong>{{ application.application_id }}</strong>.</p>
+    {% if company_email or telegram_username %}
+    <div class="actions">
+      {% if company_email %}<a class="btn btn-navy" href="mailto:{{ company_email }}?subject={{ ('Onboarding payment ' ~ application.application_id)|urlencode }}">Contact Admin by Email</a>{% endif %}
+      {% if telegram_username %}<a class="btn btn-gold" href="https://t.me/{{ telegram_username }}" rel="noopener">Contact Admin on Telegram</a>{% endif %}
+    </div>
+    {% else %}
+    <p class="flash flash-info">The official contact details have not been published yet. Please check back soon, or wait for our email.</p>
+    {% endif %}
+    <p class="small">Use only the official contact details shown here. VerifyTalent Global will never ask for your password or card PIN. Your payment is confirmed manually by our administrator after they check it.</p>
+  </div>
+</section>
+{% endblock %}

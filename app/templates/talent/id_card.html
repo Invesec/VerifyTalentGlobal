@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="wrap narrow">
+    <h1>Your ID card</h1>
+    <article class="vt-card" aria-label="VerifyTalent Global ID card">
+      <header class="vt-head">
+        <img src="{{ url_for('static', filename='images/logo-mark.png') }}" alt="" width="46" height="37">
+        <span class="wordmark">Verify<b>Talent</b>Global</span>
+      </header>
+      <div class="vt-body">
+        <div class="vt-photo" aria-hidden="true">{{ initials }}</div>
+        <div class="vt-info">
+          <h2>{{ current_user.full_name }}</h2>
+          <p>{{ application.profession }}</p>
+          <dl>
+            <div><dt>Talent ID</dt><dd>{{ card.talent_id }}</dd></div>
+            <div><dt>Status</dt><dd>VERIFIED TALENT</dd></div>
+            <div><dt>Issued</dt><dd>{{ card.issued_at|dt }}</dd></div>
+            {% if card.expires_at %}<div><dt>Expires</dt><dd>{{ card.expires_at|dt }}</dd></div>{% endif %}
+          </dl>
+        </div>
+        {% if qr %}<div class="vt-qr" role="img" aria-label="QR code linking to your verification page">{{ qr|safe }}</div>{% endif %}
+      </div>
+      <footer class="vt-foot">VerifyTalent Global &mdash; Verified Talent</footer>
+    </article>
+    <p class="small">Verification link: <a href="{{ verify_url }}">{{ verify_url }}</a></p>
+    <p class="actions"><button type="button" class="btn btn-navy" data-copy="{{ verify_url }}">Copy link</button>
+      <button type="button" class="btn btn-gold" data-share data-url="{{ verify_url }}" data-title="My VerifyTalent Global ID" hidden>Share</button></p>
+    <p class="small">This is an internal VerifyTalent Global professional ID card. It is not a government-issued identification document and does not guarantee employment or placement.</p>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section"><div class="wrap narrow prose">
+  <h1>Privacy Policy</h1>
+  <p class="small">Last updated: October 2026</p>
+  <h2>What we collect</h2>
+  <ul>
+    <li><strong>Professionals:</strong> name, email, password (stored only as a secure hash), country, phone if you give it, profession, skills, experience, education, certifications, portfolio link, availability, expected rate, languages, bio, and category-specific answers.</li>
+    <li><strong>Companies:</strong> company details, contact person, business email, phone, links, and recruitment needs.</li>
+    <li><strong>Payments:</strong> because payment is manual, we record the amount, currency, method, and reference your administrator confirms. We do not collect card numbers, bank PINs, or passwords for other services.</li>
+    <li><strong>Activity records:</strong> important actions such as registration, login, approvals, and status changes are logged, including the time and IP address.</li>
+  </ul>
+  <h2>How we use it</h2>
+  <p>To review applications, verify talent, run our matching process, arrange interviews, send service emails, keep the service secure, and meet our legal obligations.</p>
+  <h2>Who sees what</h2>
+  <ul>
+    <li>Our authorised team can see account and application information.</li>
+    <li>A company sees a professional only after our team presents them for that company's job request. Contact details stay with VerifyTalent Global.</li>
+    <li>The public verification page for a Talent ID shows only the Talent ID, name, profession, verification status, issue date, and validity. It never shows email, phone, address, payment details, documents, or internal notes.</li>
+    <li>Professionals see a client's name only once an interview is arranged.</li>
+  </ul>
+  <h2>Service providers</h2>
+  <p>We use an email delivery provider (Brevo) to send service emails, a hosting provider to run the site and database, and Google Fonts to display text on our pages. They process data only to provide those services.</p>
+  <h2>Cookies</h2>
+  <p>We use a single secure session cookie to keep you logged in. We do not use advertising or tracking cookies.</p>
+  <h2>Your choices</h2>
+  <p>You can update your professional profile from your dashboard and change your password in Account settings. To ask for access to, correction of, or deletion of your information, contact us using the details on our <a href="{{ url_for('main.page_contact') }}">Contact page</a>.</p>
+  <h2>Changes</h2>
+  <p>We will change the date above when we update this policy.</p>
+</div></section>
+{% endblock %}

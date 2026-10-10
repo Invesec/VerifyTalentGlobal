@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section"><div class="wrap narrow prose">
+  <h1>Find talent</h1>
+  <p>Tell us what you need, and our team will present suitable verified professionals for your review.</p>
+  <h2>Why there is no public talent directory</h2>
+  <p>We protect the privacy of the professionals in our network. Their details are shared with a company only when our team presents them for a specific job request, and contact details stay with VerifyTalent Global.</p>
+  <h2>How to start</h2>
+  <ol>
+    <li>Register your company and tell us your recruitment needs.</li>
+    <li>We review your company and send a client agreement.</li>
+    <li>Once you are active, post a job request with the skills, experience, and terms you need.</li>
+    <li>We score verified talent, review the results, and present candidates. Scores are internal guides, not a guarantee of suitability or hiring.</li>
+  </ol>
+  <p><a class="btn btn-navy" href="{{ url_for('auth.register_company') }}">Register your company</a></p>
+</div></section>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% from "_forms.html" import field, area with context %}
+{% block content %}
+<section class="section form-page">
+  <div class="wrap narrow">
+    <h1>Hire talent: register your company</h1>
+    <p class="section-intro">Tell us about your company and what you need. We review every company before anything is activated. Registering does not create an agreement or guarantee talent matches or hires.</p>
+    {% if errors %}<p class="flash flash-error" role="alert">Please fix the {{ errors|length }} highlighted {{ 'field' if errors|length == 1 else 'fields' }} below.</p>{% endif %}
+
+    <form method="post" action="{{ url_for('auth.register_company') }}" novalidate data-wizard>
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <fieldset>
+        <legend>Your company</legend>
+        {{ field("company_name", "Company name", required=True, autocomplete="organization", maxlength=120) }}
+        {{ field("website", "Website", type="url", help="Starts with http:// or https://", maxlength=300) }}
+        {{ field("industry", "Industry", required=True, maxlength=80) }}
+        {{ field("country", "Country", required=True, autocomplete="country-name", maxlength=60) }}
+        <div class="field{% if errors.get('company_size') %} has-error{% endif %}">
+          <label for="company_size">Company size</label>
+          <select id="company_size" name="company_size" required>
+            <option value="">Choose one</option>
+            {% for size in sizes %}<option value="{{ size }}" {% if form.get('company_size') == size %}selected{% endif %}>{{ size }} employees</option>{% endfor %}
+          </select>
+          {% if errors.get('company_size') %}<p class="error" role="alert">{{ errors['company_size'] }}</p>{% endif %}
+        </div>
+        {{ field("linkedin_url", "Company LinkedIn", type="url", maxlength=300) }}
+        {{ area("description", "Company description", maxlength=1500, rows=3) }}
+        {{ area("recruitment_needs", "Recruitment needs", required=True, help="Roles you want to fill, how many, and when.", maxlength=1500, rows=4) }}
+      </fieldset>
+
+      <fieldset>
+        <legend>Contact and login</legend>
+        {{ field("contact_name", "Contact person", required=True, autocomplete="name", maxlength=100) }}
+        {{ field("job_title", "Job title", required=True, autocomplete="organization-title", maxlength=100) }}
+        {{ field("business_email", "Business email", type="email", required=True, autocomplete="email", help="You will use this to log in.", maxlength=254) }}
+        {{ field("phone", "Phone number", type="tel", autocomplete="tel", maxlength=30, inputmode="tel") }}
+        {{ field("password", "Password", type="password", required=True, autocomplete="new-password", help="At least 10 characters.", maxlength=128) }}
+        {{ field("confirm_password", "Confirm password", type="password", required=True, autocomplete="new-password", maxlength=128) }}
+      </fieldset>
+
+      <fieldset class="step-final">
+        <legend>Confirm and submit</legend>
+      <div class="field check{% if errors.get('accept') %} has-error{% endif %}">
+        <label class="check-label">
+          <input type="checkbox" name="accept" value="yes" required {% if form.get('accept') == 'yes' %}checked{% endif %}>
+          <span>I am authorised to register this company, and I understand that registering does not create an agreement or guarantee talent matches or hires.</span>
+        </label>
+        {% if errors.get('accept') %}<p class="error" role="alert">{{ errors['accept'] }}</p>{% endif %}
+      </div>
+      </fieldset>
+      <p class="small">By continuing you also agree to our <a href="{{ url_for('main.page_terms') }}">Terms of Use</a> and <a href="{{ url_for('main.page_privacy') }}">Privacy Policy</a>.</p>
+      <button class="btn btn-navy" type="submit">Submit company application</button>
+      <p class="form-alt">Looking for work instead? <a href="{{ url_for('auth.register') }}">Join the talent network</a> &middot; <a href="{{ url_for('auth.login') }}">Log in</a></p>
+    </form>
+  </div>
+</section>
+{% endblock %}

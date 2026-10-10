@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <h1>Agreements</h1>
+    {% include "admin/_nav.html" %}
+    <p class="small">Agreements are legal documents. Have a qualified lawyer review your agreement text before using it commercially.</p>
+    {% if rows %}
+    <div class="table-scroll"><table>
+      <thead><tr><th>Agreement</th><th>Company</th><th>Type</th><th>Status</th><th>Sent</th><th>Accepted</th><th>Expires</th></tr></thead>
+      <tbody>{% for a, c in rows %}
+        <tr><td>{{ a.agreement_id }}</td><td><a href="{{ url_for('admin_clients.client_detail', pk=c.id) }}">{{ c.company_name }}</a></td>
+        <td>{{ a.agreement_type }}</td><td>{{ labels.get(a.status, a.status) }}</td>
+        <td>{{ a.sent_at|dt }}</td><td>{{ a.accepted_at|dt }}</td><td>{{ a.expires_at|dt }}</td></tr>
+      {% endfor %}</tbody>
+    </table></div>
+    {% else %}<p>No agreements yet.</p>{% endif %}
+  </div>
+</section>
+{% endblock %}

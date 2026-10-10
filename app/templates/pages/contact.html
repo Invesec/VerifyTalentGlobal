@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section"><div class="wrap narrow prose">
+  <h1>Contact</h1>
+  {% if company_email or telegram_username %}
+    <p>Reach the official VerifyTalent Global team here:</p>
+    <ul>
+      {% if company_email %}<li>Email: <a href="mailto:{{ company_email }}">{{ company_email }}</a></li>{% endif %}
+      {% if telegram_username %}<li>Telegram: <a href="https://t.me/{{ telegram_username }}" rel="noopener">@{{ telegram_username }}</a></li>{% endif %}
+    </ul>
+    <p>If you are a professional, please quote your Application ID or Talent ID. If you are a company, quote your Application ID or Client ID.</p>
+  {% else %}
+    <p>Our official contact details will be published here soon.</p>
+  {% endif %}
+  <div class="notice" role="note"><p><strong>Stay safe.</strong> Only use the contact details on this page or in your dashboard. VerifyTalent Global will never ask for your password or card PIN.</p></div>
+</div></section>
+{% endblock %}

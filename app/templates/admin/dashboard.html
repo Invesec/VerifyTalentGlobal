@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <h1>Admin overview</h1>
+    {% include "admin/_nav.html" %}
+    <dl class="stats">
+      <div><dt>Applications</dt><dd>{{ total }}</dd></div>
+      <div><dt>New</dt><dd>{{ counts.get('NEW', 0) }}</dd></div>
+      <div><dt>Awaiting payment</dt><dd>{{ awaiting_payment }}</dd></div>
+      <div><dt>Verified talent</dt><dd>{{ counts.get('VERIFIED_TALENT', 0) }}</dd></div>
+      <div><dt>New companies</dt><dd>{{ client_counts.get('NEW', 0) }}</dd></div>
+      <div><dt>Active clients</dt><dd>{{ client_counts.get('ACTIVE', 0) }}</dd></div>
+      <div><dt>New job requests</dt><dd>{{ job_counts.get('SUBMITTED', 0) }}</dd></div>
+      <div><dt>Filled jobs</dt><dd>{{ job_counts.get('FILLED', 0) }}</dd></div>
+    </dl>
+
+    {% if counts %}
+    <h2>Talent pipeline</h2>
+    {% set peak = counts.values()|max %}
+    <ul class="bars" aria-label="Applications by status">
+      {% for key, label in labels.items() if counts.get(key) %}
+      <li><span class="bar-label">{{ label }}</span><span class="bar-track"><span class="bar-fill" style="width: {{ (counts[key] / peak * 100)|round|int }}%"></span></span><span class="bar-num">{{ counts[key] }}</span></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    <h2>Latest applications</h2>
+    {% if recent %}
+    <div class="table-scroll"><table>
+      <thead><tr><th>ID</th><th>Name</th><th>Profession</th><th>Status</th></tr></thead>
+      <tbody>{% for a, u in recent %}
+        <tr><td><a href="{{ url_for('admin.talent_detail', app_pk=a.id) }}">{{ a.application_id }}</a></td>
+        <td>{{ u.full_name }}</td><td>{{ a.profession }}</td><td>{{ labels.get(a.status, a.status) }}</td></tr>
+      {% endfor %}</tbody>
+    </table></div>
+    {% else %}<p>No applications yet. Add demo talents below to try the workflow.</p>{% endif %}
+
+    <h2>Demo data</h2>
+    <p>Demo accounts are labelled [DEMO], cannot log in, and never receive email. They are not real talents.</p>
+    <div class="actions">
+      <form method="post" action="{{ url_for('admin.demo_seed') }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button class="btn btn-navy" type="submit">Add demo talents</button></form>
+      {% if demo_count %}
+      <form method="post" action="{{ url_for('admin.demo_reset') }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><input type="hidden" name="confirm" value="yes">
+        <button class="btn btn-danger" type="submit" data-confirm="Delete all {{ demo_count }} demo accounts and their records?">Delete demo data ({{ demo_count }})</button></form>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

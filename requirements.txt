@@ -1,0 +1,5 @@
+# Works on Termux and on Render
+Flask>=3.0,<4
+Flask-SQLAlchemy>=3.1,<4
+python-dotenv>=1.0
+segno>=1.6
