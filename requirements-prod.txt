@@ -1,4 +1,4 @@
 # Used by Render only (psycopg2 and gunicorn are not needed on Termux)
 -r requirements.txt
 gunicorn>=22.0
-psycopg2-binary>=2.9.10
+psycopg[binary]>=2.9.10
