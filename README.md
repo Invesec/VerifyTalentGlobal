@@ -34,12 +34,22 @@ Next time, only run: `cd ~/verifytalent-global-flask && source .venv/bin/activat
 
 If `pip install` fails on `SQLAlchemy` or `greenlet`, run `pkg install clang make -y` and try again.
 
+## Email through Gmail (free)
+
+1. Use a Gmail account for the platform (it appears as the sender). In Google Account, open **Security** and turn on **2-Step Verification**.
+2. Open **Security**, then **2-Step Verification**, then **App passwords**. Create one named `VerifyTalent` and copy the 16 letters (spaces do not matter).
+3. In Render, set `SMTP_USER` to the Gmail address and `SMTP_PASSWORD` to the app password. Leave `SMTP_HOST` and `SMTP_PORT` empty (they default to Gmail).
+4. If you still have `BREVO_API_KEY` set, you can delete it. Redeploy happens automatically.
+5. Register a test account and check that the code email arrives (also check spam).
+
+Gmail limits how many emails an account can send per day, which is fine for getting started. If you later outgrow it, set the same variables for Mailjet, SMTP2GO, or Resend (their SMTP details) with no code change. Never share the app password. If it leaks, delete it in your Google Account and make a new one.
+
 ## Email verification
 
 Talents and companies must confirm their email with a 6-digit code before they can use their dashboard. Codes expire after 15 minutes, allow 5 wrong tries, and can be re-sent once a minute. Admins are exempt. Finishing a password reset also verifies the email. In `/admin`, open a talent or company to see whether their email is verified, and use **Mark email as verified** if someone cannot receive the code.
 
-- **Locally without Brevo keys:** the code is printed in the Termux window on a line starting `DEV ONLY verification code`.
-- **On Render:** verification turns on only when `BREVO_API_KEY` and `BREVO_SENDER_EMAIL` are set, so a missing email setup can never lock everyone out. Run `flask --app wsgi check-config` to see whether it is on.
+- **Locally without email settings:** the code is printed in the Termux window on a line starting `DEV ONLY verification code`.
+- **On Render:** verification turns on only when an email provider is set (`SMTP_USER` and `SMTP_PASSWORD` for Gmail, or the Brevo pair), so a missing email setup can never lock everyone out. Run `flask --app wsgi check-config` to see whether it is on.
 - Anyone who registered before this update will be asked to verify the next time they open their dashboard.
 
 ## Update to Milestone 7
@@ -77,7 +87,7 @@ No new packages are needed.
 ## Test Milestone 6
 
 1. Open `/about`, `/how-it-works`, `/privacy`, and `/terms`, and check the footer links.
-2. Log out, open `/login`, tap **Forgot your password?**, and enter your email. Without Brevo keys, look in the Termux window for a line starting `DEV ONLY reset link`. Open that link in your browser and choose a new password.
+2. Log out, open `/login`, tap **Forgot your password?**, and enter your email. Without email settings, look in the Termux window for a line starting `DEV ONLY reset link`. Open that link in your browser and choose a new password.
 3. Log in as a talent, open **Edit profile** on the dashboard, change something, and save.
 4. Open **Account** in the menu and change your password.
 
@@ -169,7 +179,7 @@ The new tables are created automatically on start. If you already ran the old ve
 
 1. Open `/register`, pick **Translator** and watch the language questions appear. Pick **Software Developer** and they change.
 2. Submit the form. You land on your dashboard with an Application ID such as `VTG-APP-000001`.
-3. Without Brevo keys, the terminal prints `Email NOT sent (Brevo not configured)`. That is expected. Add `BREVO_API_KEY` and `BREVO_SENDER_EMAIL` to `.env` to send for real.
+3. Without email settings, the terminal prints `Email NOT sent (no email provider configured)`. That is expected. Add `SMTP_USER` and `SMTP_PASSWORD` to `.env` to send for real (see the Gmail section).
 4. Log out, then log in again at `/login`.
 
 ## Test
@@ -237,7 +247,9 @@ Free plans have a short restore window, so keep your own copies.
 |---|---|
 | `DATABASE_URL` | the Neon connection string |
 | `SESSION_SECRET` | **required**. The app will not start in production without it |
-| `BREVO_API_KEY`, `BREVO_SENDER_EMAIL` | for real emails. Email verification only turns on when these are set |
+| `SMTP_USER`, `SMTP_PASSWORD` | Gmail address and its **App Password**, for real emails. Email verification only turns on when an email provider is set |
+| `SMTP_HOST`, `SMTP_PORT` | optional. Default to `smtp.gmail.com` and `587` |
+| `BREVO_API_KEY`, `BREVO_SENDER_EMAIL` | optional backup provider, used only if Gmail fails |
 | `COMPANY_EMAIL`, `TELEGRAM_USERNAME` | shown on the Onboarding and Contact pages |
 | `ADMIN_EMAIL`, `ADMIN_INITIAL_PASSWORD` | creates your first admin on startup (12+ characters). **Delete `ADMIN_INITIAL_PASSWORD` after you can log in** |
 
@@ -250,14 +262,14 @@ Use one worker (as in the start command). The rate limiter keeps its counts in m
 ### Before you go live
 
 - Run `flask --app wsgi check-config` locally or in a Render shell. It lists what is set and what is missing, without printing any secrets.
-- In Brevo, verify your sender email or domain, or emails will not be delivered.
+- Send a real test email (register a test account) and check the inbox and spam folder.
 - Replace the demo data: in `/admin`, tap **Delete demo data**.
 - Have a qualified lawyer review the **Privacy Policy**, **Terms of Use**, and your **client agreement** before commercial use. The pages describe how the app behaves, but they are not legal advice and do not cover your company's legal details or local data-protection law.
 - Test the full flow once on the live site with test accounts: register, approve, payment, ID card, company, agreement, job, matching.
 
 ## Password reset
 
-Reset links work once and for one hour. If Brevo is not set up while you develop locally, the link is printed in the terminal (development only, never in production).
+Reset links work once and for one hour. If no email provider is set up while you develop locally, the link is printed in the terminal (development only, never in production).
 
 ## Structure
 
@@ -269,7 +281,7 @@ app/extensions.py       database object
 app/models.py           users, talent_applications, audit_logs
 app/validators.py       registration validation
 app/security.py         CSRF, login_required, rate limiting, password hashing
-app/services/           Brevo email service, audit log, matching rules, email verification, backup
+app/services/           email service (Gmail/SMTP, Brevo backup), audit log, matching rules, email verification, backup
 app/routes/             health, pages, auth, account, talent, client, admin, admin_clients, admin_jobs, public verify
 app/cli.py              create-admin, seed-demo, reset-demo commands
 app/templates/          Jinja pages

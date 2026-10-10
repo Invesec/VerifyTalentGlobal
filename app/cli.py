@@ -48,12 +48,12 @@ def register_cli(app):
             line("Database connection", True)
         except Exception:
             line("Database connection", False, "cannot connect")
-        line("BREVO_API_KEY", bool(cfg["BREVO_API_KEY"]), "emails will only be logged")
-        line("BREVO_SENDER_EMAIL", bool(cfg["BREVO_SENDER_EMAIL"]), "emails will only be logged")
+        line("SMTP_USER and SMTP_PASSWORD (Gmail)", bool(cfg["SMTP_USER"] and cfg["SMTP_PASSWORD"]), "emails will only be logged unless Brevo is set")
+        line("BREVO_API_KEY and BREVO_SENDER_EMAIL (optional)", bool(cfg["BREVO_API_KEY"] and cfg["BREVO_SENDER_EMAIL"]), "optional backup provider")
         line("COMPANY_EMAIL", bool(cfg["COMPANY_EMAIL"]), "hidden on the site")
         line("TELEGRAM_USERNAME", bool(cfg["TELEGRAM_USERNAME"]), "hidden on the site")
         from .services import verification
-        line("Email verification is ON", verification.required(cfg), "OFF: set BREVO_API_KEY and BREVO_SENDER_EMAIL so codes can be emailed")
+        line("Email verification is ON", verification.required(cfg), "OFF: set SMTP_USER and SMTP_PASSWORD so codes can be emailed")
         line("An admin account exists", db.session.scalar(select(User.id).where(User.role == "ADMIN").limit(1)) is not None,
              "run create-admin, or set ADMIN_EMAIL and ADMIN_INITIAL_PASSWORD")
         if cfg["ADMIN_INITIAL_PASSWORD"]:

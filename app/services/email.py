@@ -1,10 +1,13 @@
-"""Centralized email service using the Brevo API. Never crashes the app:
-if Brevo is not configured or fails, the event is logged instead."""
+"""Centralized email service. Tries Gmail/SMTP first, then Brevo. Never crashes the app:
+if nothing is configured or every provider fails, the event is logged instead."""
 import json
 import logging
+import smtplib
 import threading
 import urllib.error
 import urllib.request
+from email.message import EmailMessage
+from email.utils import formataddr
 
 from flask import current_app
 
@@ -12,23 +15,65 @@ from . import email_templates
 
 log = logging.getLogger("email")
 BREVO_URL = "https://api.brevo.com/v3/smtp/email"
+DEMO_DOMAIN = "@demo.verifytalent.invalid"
+
+
+def _clean_header(value):
+    """Removes line breaks so a crafted name or subject can never inject extra email headers."""
+    return " ".join(str(value).replace("\r", " ").replace("\n", " ").split())
+
+
+def _smtp_send(settings, brand, to_email, to_name, subject, html, text, event):
+    """Sends one message through SMTP (Gmail by default). Returns True on success."""
+    message = EmailMessage()
+    message["From"] = formataddr((_clean_header(brand), settings["user"]))
+    message["To"] = formataddr((_clean_header(to_name), _clean_header(to_email)))
+    message["Subject"] = _clean_header(subject)
+    message.set_content(text)
+    message.add_alternative(html, subtype="html")
+    try:
+        if settings["port"] == 465:
+            server = smtplib.SMTP_SSL(settings["host"], settings["port"], timeout=15)
+        else:
+            server = smtplib.SMTP(settings["host"], settings["port"], timeout=15)
+        with server:
+            if settings["port"] != 465:
+                server.starttls()
+            server.login(settings["user"], settings["password"])
+            server.send_message(message)
+        log.info("Email sent (SMTP): event=%s to=%s", event, to_email)
+        return True
+    except smtplib.SMTPAuthenticationError:
+        log.error("SMTP login was refused: check SMTP_USER and the app password. event=%s", event)
+    except Exception as err:  # network down, timeout, and so on
+        log.error("SMTP send failed: event=%s to=%s error=%s", event, to_email, type(err).__name__)
+    return False
 
 
 def _post(api_key, payload, event, to_email):
+    """Sends one message through the Brevo API. Returns True on success."""
     request = urllib.request.Request(
         BREVO_URL, data=json.dumps(payload).encode("utf-8"), method="POST",
         headers={"api-key": api_key, "content-type": "application/json", "accept": "application/json"},
     )
     try:
         with urllib.request.urlopen(request, timeout=10) as response:
-            log.info("Email sent: event=%s to=%s status=%s", event, to_email, response.status)
+            log.info("Email sent (Brevo): event=%s to=%s status=%s", event, to_email, response.status)
+            return True
     except urllib.error.HTTPError as err:
         log.error("Brevo rejected email: event=%s to=%s status=%s", event, to_email, err.code)
-    except Exception as err:  # network down, timeout, and so on
-        log.error("Email failed: event=%s to=%s error=%s", event, to_email, type(err).__name__)
+    except Exception as err:
+        log.error("Brevo send failed: event=%s to=%s error=%s", event, to_email, type(err).__name__)
+    return False
 
 
-DEMO_DOMAIN = "@demo.verifytalent.invalid"
+def _deliver(attempts, event, to_email):
+    """Runs the configured providers in order and stops at the first one that works."""
+    for attempt in attempts:
+        if attempt():
+            return True
+    log.error("Email NOT delivered by any provider: event=%s to=%s", event, to_email)
+    return False
 
 
 def send_email(event, to_email, to_name, subject, html, text):
@@ -36,16 +81,22 @@ def send_email(event, to_email, to_name, subject, html, text):
     if to_email.endswith(DEMO_DOMAIN):
         log.info("Email skipped for demo account: event=%s", event)
         return False
-    api_key, sender = cfg["BREVO_API_KEY"], cfg["BREVO_SENDER_EMAIL"]
-    if not api_key or not sender:
-        log.warning("Email NOT sent (Brevo not configured): event=%s to=%s subject=%s", event, to_email, subject)
+    attempts = []
+    if cfg.get("SMTP_USER") and cfg.get("SMTP_PASSWORD"):
+        settings = {"host": cfg["SMTP_HOST"], "port": cfg["SMTP_PORT"], "user": cfg["SMTP_USER"], "password": cfg["SMTP_PASSWORD"]}
+        attempts.append(lambda: _smtp_send(settings, cfg["BRAND_NAME"], to_email, to_name, subject, html, text, event))
+    if cfg.get("BREVO_API_KEY") and cfg.get("BREVO_SENDER_EMAIL"):
+        payload = {
+            "sender": {"name": cfg["BRAND_NAME"], "email": cfg["BREVO_SENDER_EMAIL"]},
+            "to": [{"email": to_email, "name": _clean_header(to_name)}],
+            "subject": subject, "htmlContent": html, "textContent": text,
+        }
+        api_key = cfg["BREVO_API_KEY"]
+        attempts.append(lambda: _post(api_key, payload, event, to_email))
+    if not attempts:
+        log.warning("Email NOT sent (no email provider configured): event=%s to=%s subject=%s", event, to_email, subject)
         return False
-    payload = {
-        "sender": {"name": cfg["BRAND_NAME"], "email": sender},
-        "to": [{"email": to_email, "name": to_name}],
-        "subject": subject, "htmlContent": html, "textContent": text,
-    }
-    threading.Thread(target=_post, args=(api_key, payload, event, to_email), daemon=True).start()
+    threading.Thread(target=_deliver, args=(attempts, event, to_email), daemon=True).start()
     return True
 
 

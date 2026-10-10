@@ -10,6 +10,7 @@ from sqlalchemy import select
 
 from ..extensions import db
 from ..models import EmailVerification
+from .mailconfig import email_configured
 
 CODE_TTL = timedelta(minutes=15)
 MAX_ATTEMPTS = 5
@@ -18,9 +19,9 @@ VERIFIED_ROLES = ("TALENT", "CLIENT")  # admins are exempt
 
 
 def required(config):
-    """On when emails can really be delivered, or while developing locally (the code is printed in the terminal).
-    Off in production without Brevo, so a missing email setup never locks everyone out."""
-    return bool(config["BREVO_API_KEY"] and config["BREVO_SENDER_EMAIL"]) or not config["IS_PROD"]
+    """On when emails can really be delivered (Gmail/SMTP or Brevo is set), or while developing locally (the code is printed in the terminal).
+    Off in production without an email provider, so a missing email setup never locks everyone out."""
+    return email_configured(config) or not config["IS_PROD"]
 
 
 def _aware(value):
