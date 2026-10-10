@@ -1,5 +1,6 @@
-"""Centralized email service. Tries Gmail/SMTP first, then Brevo. Never crashes the app:
+"""Centralized email service. Tries Gmail/SMTP first, then Brevo, Mailjet and Resend (HTTPS, work on Render free). Never crashes the app:
 if nothing is configured or every provider fails, the event is logged instead."""
+import base64
 import json
 import logging
 import smtplib
@@ -15,6 +16,8 @@ from . import email_templates
 
 log = logging.getLogger("email")
 BREVO_URL = "https://api.brevo.com/v3/smtp/email"
+MAILJET_URL = "https://api.mailjet.com/v3.1/send"
+RESEND_URL = "https://api.resend.com/emails"
 DEMO_DOMAIN = "@demo.verifytalent.invalid"
 
 
@@ -67,6 +70,24 @@ def _post(api_key, payload, event, to_email):
     return False
 
 
+def _https_send(name, url, headers, payload, event, to_email):
+    """Sends one message through an HTTPS email API (Mailjet, Resend). Returns True on success."""
+    request = urllib.request.Request(
+        url, data=json.dumps(payload).encode("utf-8"), method="POST",
+        headers={"content-type": "application/json", "accept": "application/json",
+                 "user-agent": "VerifyTalentGlobal/1.0", **headers},  # some APIs block the default Python user agent
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=10) as response:
+            log.info("Email sent (%s): event=%s to=%s status=%s", name, event, to_email, response.status)
+            return True
+    except urllib.error.HTTPError as err:
+        log.error("%s rejected email: event=%s to=%s status=%s", name, event, to_email, err.code)
+    except Exception as err:
+        log.error("%s send failed: event=%s to=%s error=%s", name, event, to_email, type(err).__name__)
+    return False
+
+
 def _deliver(attempts, event, to_email):
     """Runs the configured providers in order and stops at the first one that works."""
     for attempt in attempts:
@@ -93,6 +114,17 @@ def send_email(event, to_email, to_name, subject, html, text):
         }
         api_key = cfg["BREVO_API_KEY"]
         attempts.append(lambda: _post(api_key, payload, event, to_email))
+    if cfg.get("MAILJET_API_KEY") and cfg.get("MAILJET_SECRET_KEY") and cfg.get("MAILJET_SENDER_EMAIL"):
+        token = base64.b64encode(f"{cfg['MAILJET_API_KEY']}:{cfg['MAILJET_SECRET_KEY']}".encode()).decode()
+        mj_payload = {"Messages": [{
+            "From": {"Email": cfg["MAILJET_SENDER_EMAIL"], "Name": cfg["BRAND_NAME"]},
+            "To": [{"Email": to_email, "Name": _clean_header(to_name)}],
+            "Subject": _clean_header(subject), "TextPart": text, "HTMLPart": html}]}
+        attempts.append(lambda: _https_send("Mailjet", MAILJET_URL, {"authorization": f"Basic {token}"}, mj_payload, event, to_email))
+    if cfg.get("RESEND_API_KEY") and cfg.get("RESEND_SENDER_EMAIL"):
+        rs_payload = {"from": formataddr((_clean_header(cfg["BRAND_NAME"]), cfg["RESEND_SENDER_EMAIL"])),
+                      "to": [to_email], "subject": _clean_header(subject), "html": html, "text": text}
+        attempts.append(lambda: _https_send("Resend", RESEND_URL, {"authorization": f"Bearer {cfg['RESEND_API_KEY']}"}, rs_payload, event, to_email))
     if not attempts:
         log.warning("Email NOT sent (no email provider configured): event=%s to=%s subject=%s", event, to_email, subject)
         return False

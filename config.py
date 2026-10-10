@@ -40,6 +40,12 @@ class Config:
     SMTP_PASSWORD = _clean("SMTP_PASSWORD").replace(" ", "")  # Google shows app passwords in groups of 4
     BREVO_API_KEY = _clean("BREVO_API_KEY")
     BREVO_SENDER_EMAIL = _clean("BREVO_SENDER_EMAIL")
+    # HTTPS email providers (work on Render free, which blocks SMTP ports)
+    MAILJET_API_KEY = _clean("MAILJET_API_KEY")
+    MAILJET_SECRET_KEY = _clean("MAILJET_SECRET_KEY")
+    MAILJET_SENDER_EMAIL = _clean("MAILJET_SENDER_EMAIL")
+    RESEND_API_KEY = _clean("RESEND_API_KEY")
+    RESEND_SENDER_EMAIL = _clean("RESEND_SENDER_EMAIL")
     ADMIN_EMAIL = _clean("ADMIN_EMAIL")
     ADMIN_INITIAL_PASSWORD = _clean("ADMIN_INITIAL_PASSWORD")
     COMPANY_EMAIL = _clean("COMPANY_EMAIL")
